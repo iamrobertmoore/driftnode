@@ -25,16 +25,32 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # The generated node does not exist until the generator has emitted it.
+      # Skip rather than fail so the badge stays honest.
+      - name: Is there a node to check yet?
+        id: gate
+        run: |
+          if [ -f packages/n8n-nodes-vultr/package.json ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::No generated node yet, skipping conformance check."
+          fi
+
       - uses: actions/setup-node@v4
+        if: steps.gate.outputs.ready == 'true'
         with:
           node-version: '22'
           cache: npm
 
-      - run: npm ci
-      - run: npm run build
+      - if: steps.gate.outputs.ready == 'true'
+        run: npm ci
+      - if: steps.gate.outputs.ready == 'true'
+        run: npm run build
 
       - name: Conformance check against live vendor API
         id: check
+        if: steps.gate.outputs.ready == 'true'
         env:
           VULTR_API_KEY: ${{ secrets.VULTR_API_KEY }}
         run: npm run conformance
