@@ -1,0 +1,45 @@
+# Publishes the generated node to npm using OIDC trusted publishing.
+#
+# No NPM_TOKEN is used or required. Provenance is attested by npm from this
+# workflow's identity, so the published package links back to the exact commit
+# and workflow run that produced it.
+#
+# Setup on npmjs.com, once, before the first release:
+#   Package settings -> Trusted publisher -> GitHub Actions
+#   Repository: iamrobertmoore/driftnode
+#   Workflow:   publish.yml
+name: Publish node
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: npm-publish
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          registry-url: 'https://registry.npmjs.org'
+          cache: npm
+
+      # Trusted publishing requires npm 11.5.1 or later.
+      - name: Upgrade npm
+        run: npm install -g npm@latest
+
+      - run: npm ci
+      - run: npm run build
+      - run: npm test
+
+      - name: Publish with provenance
+        run: npm publish --provenance --access public
+        working-directory: packages/n8n-nodes-vultr

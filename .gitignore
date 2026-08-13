@@ -1,0 +1,12 @@
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+.env
+.env.*
+!.env.example
+.DS_Store
+*.log
+
+# The .kiro directory is a required submission artefact and is deliberately
+# NOT ignored here. Do not add it. See README, "How I used Kiro".

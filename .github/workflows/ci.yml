@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['20.19', '22']
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck --workspaces --if-present
+
+      - name: Build
+        run: npm run build
+
+      - name: Test
+        run: npm test
+
+  # The .kiro directory is a required submission artefact (hackathon rules S15).
+  # This job fails the build if it is ever removed or ignored.
+  kiro-artefacts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: .kiro directory must exist at repo root
+        run: |
+          test -d .kiro || { echo "::error::.kiro directory is missing from the repo root"; exit 1; }
+          for d in specs steering hooks settings; do
+            test -d ".kiro/$d" || echo "::warning::.kiro/$d not present yet"
+          done
+
+      - name: .kiro must not be ignored
+        run: |
+          if git check-ignore -q .kiro; then
+            echo "::error::.kiro is matched by .gitignore"; exit 1
+          fi
+          if [ -f .kiroignore ] && grep -qE '(^|/)\.kiro(/|$)' .kiroignore; then
+            echo "::error::.kiro is excluded by .kiroignore"; exit 1
+          fi
+
+      - name: No secrets committed
+        run: |
+          if git grep -nIE '(ghp_[A-Za-z0-9]{20,}|npm_[A-Za-z0-9]{20,}|-----BEGIN [A-Z ]*PRIVATE KEY-----)' -- . ':!*.md'; then
+            echo "::error::possible credential committed"; exit 1
+          fi
+          echo "clean"

@@ -1,0 +1,63 @@
+# Vendor-contract conformance.
+#
+# The generated node was built against a snapshot of the vendor's API contract.
+# This workflow re-checks that contract against the live API on a schedule, so
+# upstream drift surfaces here rather than in a user's failing workflow at 3am.
+name: Conformance
+
+on:
+  schedule:
+    - cron: '17 6 * * *'
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'packages/n8n-nodes-vultr/**'
+      - '.github/workflows/conformance.yml'
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  conformance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - run: npm ci
+      - run: npm run build
+
+      - name: Conformance check against live vendor API
+        id: check
+        env:
+          VULTR_API_KEY: ${{ secrets.VULTR_API_KEY }}
+        run: npm run conformance
+
+      - name: Open an issue on drift
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = 'Vendor API drift detected';
+            const body = [
+              'The scheduled conformance check failed, which means the vendor API no longer',
+              'matches the contract the node was generated from.',
+              '',
+              `Run: ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+            ].join('\n');
+            const existing = await github.rest.issues.listForRepo({
+              owner: context.repo.owner, repo: context.repo.repo,
+              state: 'open', labels: 'drift',
+            });
+            if (existing.data.length === 0) {
+              await github.rest.issues.create({
+                owner: context.repo.owner, repo: context.repo.repo,
+                title, body, labels: ['drift'],
+              });
+            }
