@@ -1081,6 +1081,43 @@ Fixtures are JSON files in `test/fixtures/`. Each fixture is named `{resource}-{
 
 The fixture loader in the generated package reads these files and returns mock responses, enabling offline testing.
 
+
+### Conformance Test Safety Constraint
+
+The generated conformance test runs on a daily schedule in CI and must never perform operations that:
+- Incur charges or costs
+- Create billable resources
+- Delete or modify existing production data
+- Perform destructive operations
+
+**Safe operation categories:**
+1. **Read-only operations**: GET requests that retrieve lists or individual resources (e.g., list regions, get plans, list instances, get instance details)
+2. **Free CRUD resources**: Full create, read, update, delete cycles on resources that are free to create and destroy (e.g., SSH keys, API tokens, webhooks)
+
+**Unsafe operation categories (excluded from conformance):**
+1. **Billable resource creation**: Creating instances, volumes, load balancers, or any resource that incurs hourly or usage-based charges
+2. **Destructive operations**: Deleting, stopping, or modifying resources not created by the conformance test itself
+3. **State-changing operations on billable resources**: Starting, stopping, resizing, or snapshot operations that may trigger charges
+
+**Implementation guidance:**
+
+When generating the conformance test, the generator must:
+1. Include only read-only operations (GET) for all billable resources
+2. Include full CRUD operations only for resources explicitly documented as free
+3. For resources with mixed cost profiles (e.g., instances are billable but listing instances is free), include only the read operations
+4. Document which operations are covered and which are excluded due to cost/safety concerns
+
+**Vultr example (reference, not exhaustive):**
+- **Regions** (read-only): list regions
+- **Plans** (read-only): list plans, get plan details
+- **Instances** (read-only subset): list instances, get instance details
+- **Instances** (excluded): create, delete, start, stop, reboot
+- **SSH Keys** (full CRUD): create key, list keys, get key, update key, delete key
+- **Volumes** (excluded): all operations (billable resource)
+
+This is a **general rule for any vendor**, not a Vultr-specific case. The generator must analyze the vendor's pricing model and select safe operations accordingly. When in doubt, exclude the operation from conformance testing.
+
+
 ## Extension Points for Deferred Requirements
 
 ### Requirement 11: Pagination Extraction
