@@ -130,6 +130,143 @@
         "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
         "timestamp": 1786977518265
       }
+    ],
+    "5.1 Create `src/extract.ts` with kiro-cli invocation": [
+      {
+        "executionId": "7a448e41-f6aa-4ebd-9742-9619c8cd5bac",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1786978738331
+      },
+      {
+        "executionId": "7a448e41-f6aa-4ebd-9742-9619c8cd5bac",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1786978748858
+      },
+      {
+        "executionId": "7a448e41-f6aa-4ebd-9742-9619c8cd5bac",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1786979029913
+      }
+    ],
+    "5.2 Implement file handoff protocol": [
+      {
+        "executionId": "7a448e41-f6aa-4ebd-9742-9619c8cd5bac",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1786978738807
+      },
+      {
+        "executionId": "7a448e41-f6aa-4ebd-9742-9619c8cd5bac",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1786979030670
+      }
+    ],
+    "5.3 Implement base URL and authentication extraction": [
+      {
+        "executionId": "7a448e41-f6aa-4ebd-9742-9619c8cd5bac",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1786978739575
+      },
+      {
+        "executionId": "7a448e41-f6aa-4ebd-9742-9619c8cd5bac",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1786979031295
+      }
+    ],
+    "5.4 Implement resource and operation extraction": [
+      {
+        "executionId": "7a448e41-f6aa-4ebd-9742-9619c8cd5bac",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1786978740372
+      },
+      {
+        "executionId": "7a448e41-f6aa-4ebd-9742-9619c8cd5bac",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1786979032109
+      }
+    ],
+    "5.5 Implement parameter extraction": [
+      {
+        "executionId": "7a448e41-f6aa-4ebd-9742-9619c8cd5bac",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1786978741149
+      },
+      {
+        "executionId": "7a448e41-f6aa-4ebd-9742-9619c8cd5bac",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1786979032877
+      }
+    ],
+    "5.6 Implement response shape extraction": [
+      {
+        "executionId": "7a448e41-f6aa-4ebd-9742-9619c8cd5bac",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1786978741936
+      },
+      {
+        "executionId": "7a448e41-f6aa-4ebd-9742-9619c8cd5bac",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1786979033658
+      }
+    ],
+    "5.7 Implement multi-chunk IR merging": [
+      {
+        "executionId": "7a448e41-f6aa-4ebd-9742-9619c8cd5bac",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1786978742673
+      },
+      {
+        "executionId": "7a448e41-f6aa-4ebd-9742-9619c8cd5bac",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1786979034458
+      }
+    ],
+    "5.8 Add generator-owned metadata to IR": [
+      {
+        "executionId": "7a448e41-f6aa-4ebd-9742-9619c8cd5bac",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1786978743552
+      },
+      {
+        "executionId": "7a448e41-f6aa-4ebd-9742-9619c8cd5bac",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1786979035295
+      }
+    ],
+    "5.9 Write unit tests for extract stage": [
+      {
+        "executionId": "7a448e41-f6aa-4ebd-9742-9619c8cd5bac",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1786978744347
+      },
+      {
+        "executionId": "7a448e41-f6aa-4ebd-9742-9619c8cd5bac",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1786979037261
+      }
+    ],
+    "5. Implement Stage 2: Extract": [
+      {
+        "executionId": "7a448e41-f6aa-4ebd-9742-9619c8cd5bac",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1786979035368
+      }
+    ],
+    "6. Checkpoint - Verify extract stage works": [
+      {
+        "executionId": "7a448e41-f6aa-4ebd-9742-9619c8cd5bac",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1786979042098
+      },
+      {
+        "executionId": "7a448e41-f6aa-4ebd-9742-9619c8cd5bac",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1786979043024
+      },
+      {
+        "executionId": "7a448e41-f6aa-4ebd-9742-9619c8cd5bac",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1786979053108
+      }
     ]
   }
 }

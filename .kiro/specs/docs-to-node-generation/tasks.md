@@ -89,8 +89,8 @@ The critical architectural elements are:
 - [ ] 4. Checkpoint - Verify ingest stage works
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 5. Implement Stage 2: Extract
-  - [ ] 5.1 Create `src/extract.ts` with kiro-cli invocation
+- [x] 5. Implement Stage 2: Extract
+  - [x] 5.1 Create `src/extract.ts` with kiro-cli invocation
     - Implement `extract(chunks: DocumentChunk[], config: Config, tempDir: string): Promise<IntermediateRepresentation>` function
     - Create temporary directory `.tmp-{vendor}/` in workspace
     - For each chunk, construct output path: `.tmp-{vendor}/ir-chunk-{n}.json`
@@ -100,7 +100,7 @@ The critical architectural elements are:
     - Capture exit code, stdout, and stderr
     - _Requirements: 2.1 (all criteria)_
 
-  - [ ] 5.2 Implement file handoff protocol
+  - [x] 5.2 Implement file handoff protocol
     - After kiro-cli exits, check exit code
     - If non-zero, throw error with `{ stage: 'extract', type: 'kiro_failed', exit_code, stderr }`
     - If exit code is zero, read file at output path
@@ -112,7 +112,7 @@ The critical architectural elements are:
     - Handle kiro-cli timeout (kill subprocess after 5 minutes)
     - _Requirements: 2.1 (criteria 5-8)_
 
-  - [ ] 5.3 Implement base URL and authentication extraction
+  - [x] 5.3 Implement base URL and authentication extraction
     - Parse `base_url` field from PartialIR (optional, may be absent in some chunks)
     - Parse `auth` field from PartialIR with type: 'api_key' | 'bearer_token' | 'basic' | 'oauth2'
     - For api_key auth, parse location ('header' | 'query' | 'body') and corresponding field name
@@ -121,7 +121,7 @@ The critical architectural elements are:
     - When multiple auth schemes present, select most secure: oauth2 > bearer_token > api_key > basic
     - _Requirements: 2.2 (all criteria)_
 
-  - [ ] 5.4 Implement resource and operation extraction
+  - [x] 5.4 Implement resource and operation extraction
     - Parse `resources` array from PartialIR (may be empty if chunk has no endpoints)
     - For each resource, extract name, display_name, description, and operations array
     - For each operation, extract name, display_name, description, http_method, path
@@ -131,7 +131,7 @@ The critical architectural elements are:
     - Track missing resources/operations specified in config for error reporting
     - _Requirements: 2.3 (all criteria)_
 
-  - [ ] 5.5 Implement parameter extraction
+  - [x] 5.5 Implement parameter extraction
     - Parse `parameters` array from operation in PartialIR
     - For each parameter, extract name, display_name, description, location, type, required
     - Parse location: 'path' | 'query' | 'header' | 'body'
@@ -141,7 +141,7 @@ The critical architectural elements are:
     - Do NOT default or infer missing constraint values
     - _Requirements: 2.4 (all criteria)_
 
-  - [ ] 5.6 Implement response shape extraction
+  - [x] 5.6 Implement response shape extraction
     - Parse `response_shape` from operation in PartialIR
     - Extract type: 'object' | 'array' | 'primitive'
     - For object type, extract properties map with field names to types
@@ -151,7 +151,7 @@ The critical architectural elements are:
     - When response structure ambiguous/undocumented, set `undocumented: true` flag
     - _Requirements: 2.5 (all criteria)_
 
-  - [ ] 5.7 Implement multi-chunk IR merging
+  - [x] 5.7 Implement multi-chunk IR merging
     - Collect all PartialIR objects from chunks
     - Merge base_url: first non-undefined wins, different values = conflict error
     - Merge auth: first non-undefined wins, different auth types = conflict error
@@ -161,7 +161,7 @@ The critical architectural elements are:
     - If same operation name has different path, throw merge_conflict error with chunk indices
     - _Requirements: 2.6 (all criteria)_
 
-  - [ ] 5.8 Add generator-owned metadata to IR
+  - [x] 5.8 Add generator-owned metadata to IR
     - Compute SHA-256 content_hash over full normalized documentation (not per-chunk)
     - Set extracted_at to ISO 8601 timestamp of generation run
     - Set schema_version to "1.0.0"
@@ -170,7 +170,7 @@ The critical architectural elements are:
     - Return complete IntermediateRepresentation
     - _Requirements: 2.6 (criterion 7), 4.3_
 
-  - [ ]* 5.9 Write unit tests for extract stage
+  - [x]* 5.9 Write unit tests for extract stage
     - Mock kiro-cli subprocess calls
     - Test successful extraction with valid PartialIR
     - Test kiro_not_found error
@@ -189,7 +189,7 @@ The critical architectural elements are:
     - Test extracted_at timestamp format
     - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6_
 
-- [ ] 6. Checkpoint - Verify extract stage works
+- [x] 6. Checkpoint - Verify extract stage works
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 7. Implement Stage 3: Validate
