@@ -86,7 +86,7 @@ The critical architectural elements are:
     - Test single-chunk mode for small documents
     - _Requirements: 1.1, 1.2, 1.3, 1.4_
 
-- [ ] 4. Checkpoint - Verify ingest stage works
+- [~] 4. Checkpoint - Verify ingest stage works
   - Ensure all tests pass, ask the user if questions arise.
 
 - [x] 5. Implement Stage 2: Extract
@@ -192,8 +192,8 @@ The critical architectural elements are:
 - [x] 6. Checkpoint - Verify extract stage works
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 7. Implement Stage 3: Validate
-  - [ ] 7.1 Create `src/validate.ts` with completeness validation
+- [x] 7. Implement Stage 3: Validate
+  - [x] 7.1 Create `src/validate.ts` with completeness validation
     - Define `ValidationResult = { valid: true } | { valid: false, errors: ValidationError[] }` type
     - Implement `validate(ir: IntermediateRepresentation): ValidationResult` function
     - Check base_url field present, throw missing_base_url error if absent
@@ -202,7 +202,7 @@ The critical architectural elements are:
     - For each resource, check operations array non-empty, throw empty_operations with resource name if empty
     - _Requirements: 3.1 (all criteria)_
 
-  - [ ] 7.2 Implement operation integrity validation
+  - [x] 7.2 Implement operation integrity validation
     - For each operation, check http_method present, throw missing_http_method with resource and operation if absent
     - For each operation, check path present, throw missing_path with resource and operation if absent
     - Extract path parameters from path (e.g., "{instance-id}") using regex
@@ -212,7 +212,7 @@ The critical architectural elements are:
     - If POST/PUT has no body parameters, log warning but continue (not fatal)
     - _Requirements: 3.2 (all criteria)_
 
-  - [ ] 7.3 Implement authentication configuration validation
+  - [x] 7.3 Implement authentication configuration validation
     - When auth.type='api_key' and location='header', verify header_name present, throw missing_api_key_header_name if absent
     - When auth.type='api_key' and location='query', verify query_param_name present, throw missing_api_key_query_param_name if absent
     - When auth.type='api_key' and location='body', verify body_field_name present
@@ -220,7 +220,7 @@ The critical architectural elements are:
     - When auth.type='oauth2', verify authorize_url and token_url present, throw missing_oauth2_urls with missing list if absent
     - _Requirements: 3.3 (all criteria)_
 
-  - [ ]* 7.4 Write unit tests for validate stage
+  - [x]* 7.4 Write unit tests for validate stage
     - Test valid complete IR passes all checks
     - Test missing_base_url error
     - Test missing_auth_scheme error
@@ -236,17 +236,17 @@ The critical architectural elements are:
     - Test missing_oauth2_urls error
     - _Requirements: 3.1, 3.2, 3.3_
 
-- [ ] 8. Checkpoint - Verify validate stage works
+- [x] 8. Checkpoint - Verify validate stage works
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 9. Implement Stage 4: Emit (Credentials and Node)
-  - [ ] 9.1 Create `src/emit.ts` with directory structure setup
+- [x] 9. Implement Stage 4: Emit (Credentials and Node)
+  - [x] 9.1 Create `src/emit.ts` with directory structure setup
     - Implement `emit(ir: IntermediateRepresentation, config: GeneratorConfig, tempDir: string): Promise<void>` function
     - Create temporary directory structure in tempDir
     - Create directories: `credentials/`, `nodes/{VendorName}/`, `contract/`, `test/`, `test/fixtures/`
     - _Requirements: 4.1, 4.2 (directory structure)_
 
-  - [ ] 9.2 Implement credentials file emission
+  - [x] 9.2 Implement credentials file emission
     - Create function `emitCredentials(ir: IntermediateRepresentation, vendor: string, tempDir: string): void`
     - Generate TypeScript file at `credentials/{VendorName}Api.credentials.ts`
     - Implement ICredentialType interface from n8n-workflow
@@ -258,7 +258,7 @@ The critical architectural elements are:
     - Add documentation links in properties description
     - _Requirements: 4.1 (all criteria)_
 
-  - [ ] 9.3 Implement node class emission (structure and description)
+  - [x] 9.3 Implement node class emission (structure and description)
     - Create function `emitNode(ir: IntermediateRepresentation, vendor: string, tempDir: string): void`
     - Generate TypeScript file at `nodes/{VendorName}/{VendorName}.node.ts`
     - Implement INodeType interface from n8n-workflow
@@ -269,7 +269,7 @@ The critical architectural elements are:
     - Generate operation dropdown (values per resource from IR.resources[].operations)
     - _Requirements: 4.2 (criteria 1-6)_
 
-  - [ ] 9.4 Implement node class emission (parameter fields)
+  - [x] 9.4 Implement node class emission (parameter fields)
     - For each operation in IR, generate parameter input fields
     - Map parameter location to n8n field types
     - Map parameter type to n8n displayOptions (string, number, boolean, collection, fixedCollection)
@@ -280,7 +280,7 @@ The critical architectural elements are:
     - Generate displayOptions to show fields only when relevant resource+operation selected
     - _Requirements: 4.2 (criterion 8)_
 
-  - [ ] 9.5 Implement node class emission (execute method)
+  - [x] 9.5 Implement node class emission (execute method)
     - Generate execute method with IExecuteFunctions parameter
     - Add switch statement routing on resource type
     - Add nested switch on operation type
@@ -293,7 +293,7 @@ The critical architectural elements are:
     - Parse response and return as INodeExecutionData[]
     - _Requirements: 4.2 (criterion 9)_
 
-  - [ ] 9.6 Implement error mapping in execute method
+  - [x] 9.6 Implement error mapping in execute method
     - Wrap HTTP requests in try-catch
     - Check response.status and throw appropriate n8n errors
     - Status 400: throw NodeOperationError with "Invalid input" message
@@ -305,7 +305,7 @@ The critical architectural elements are:
     - Include HTTP status code, response body excerpt (first 200 chars), and operation name in error message
     - _Requirements: 4.3 (all criteria)_
 
-  - [ ]* 9.7 Write unit tests for credentials and node emission
+  - [x]* 9.7 Write unit tests for credentials and node emission
     - Test credentials file generation for each auth type (api_key header/query/body, bearer_token, basic, oauth2)
     - Test node file structure (INodeType interface, description, credentials, properties)
     - Test resource and operation dropdown generation
@@ -317,18 +317,18 @@ The critical architectural elements are:
     - Use snapshot testing for generated TypeScript code
     - _Requirements: 4.1, 4.2, 4.3_
 
-- [ ] 10. Checkpoint - Verify credentials and node emission works
+- [x] 10. Checkpoint - Verify credentials and node emission works
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 11. Implement Stage 4: Emit (Contract, Metadata, Tests)
-  - [ ] 11.1 Implement IR contract file emission
+- [x] 11. Implement Stage 4: Emit (Contract, Metadata, Tests)
+  - [x] 11.1 Implement IR contract file emission
     - Create function `emitContract(ir: IntermediateRepresentation, tempDir: string): void`
     - Write IR to `contract/ir.json` as formatted JSON (2-space indentation)
     - Ensure schema_version, source, base_url, auth, resources all present
     - Ensure source.content_hash (SHA-256), source.extracted_at (ISO 8601), source.url or source.path present
     - _Requirements: 4.4 (all criteria)_
 
-  - [ ] 11.2 Implement package.json emission
+  - [x] 11.2 Implement package.json emission
     - Create function `emitPackageJson(ir: IntermediateRepresentation, vendor: string, tempDir: string): void`
     - Write `package.json` with name `n8n-nodes-{vendor}`
     - Set version to "0.1.0"
@@ -340,7 +340,7 @@ The critical architectural elements are:
     - Add npm scripts: build (tsc), test (vitest run), typecheck (tsc --noEmit)
     - _Requirements: 4.6 (criteria 1-5)_
 
-  - [ ] 11.3 Implement tsconfig.json emission
+  - [x] 11.3 Implement tsconfig.json emission
     - Create function `emitTsConfig(tempDir: string): void`
     - Write `tsconfig.json` with module="commonjs" (required by n8n)
     - Set target="ES2020"
@@ -350,7 +350,7 @@ The critical architectural elements are:
     - Set include patterns for source files
     - _Requirements: 4.6 (criteria 6-7)_
 
-  - [ ] 11.4 Implement README emission
+  - [x] 11.4 Implement README emission
     - Create function `emitReadme(ir: IntermediateRepresentation, vendor: string, tempDir: string): void`
     - Write `README.md` with vendor name as title
     - Add warning: "This package is generated. Do not edit by hand."
@@ -361,7 +361,7 @@ The critical architectural elements are:
     - Add instructions for running in offline mode (environment variable control)
     - _Requirements: 4.6 (criteria 8-10)_
 
-  - [ ] 11.5 Implement conformance test emission
+  - [x] 11.5 Implement conformance test emission
     - Create function `emitConformanceTest(ir: IntermediateRepresentation, vendor: string, tempDir: string): void`
     - Write `test/conformance.test.ts` as vitest test suite
     - Import fs and path (Node built-ins, not driftnode package)
@@ -376,7 +376,7 @@ The critical architectural elements are:
     - Set test timeout to 60 seconds
     - _Requirements: 4.7 (all criteria)_
 
-  - [ ] 11.6 Implement fixture generation and loader emission
+  - [x] 11.6 Implement fixture generation and loader emission
     - Create function `emitFixtures(ir: IntermediateRepresentation, tempDir: string): void`
     - For each operation in IR with examples, create fixture file at `test/fixtures/{resource}-{operation}-{hash}.json`
     - Fixture file format: `{ request: { method, path, headers, query, body }, response: { status, headers, body } }`
@@ -386,7 +386,7 @@ The critical architectural elements are:
     - Fixture loader reads from `test/fixtures/` and returns mock response matching request parameters
     - _Requirements: 4.8 (all criteria)_
 
-  - [ ] 11.7 Implement unit test emission for fixture-backed mode
+  - [x] 11.7 Implement unit test emission for fixture-backed mode
     - Create function `emitUnitTests(ir: IntermediateRepresentation, vendor: string, tempDir: string): void`
     - Write `test/unit.test.ts` as vitest test suite
     - Import fixture loader (from `./fixture-loader.ts`)
@@ -396,7 +396,7 @@ The critical architectural elements are:
     - Run WITHOUT vendor credentials (offline mode)
     - _Requirements: 4.8 (criterion 4)_
 
-  - [ ]* 11.8 Write integration tests for emission stage
+  - [x]* 11.8 Write integration tests for emission stage
     - Test complete emission pipeline from IR to all files
     - Verify directory structure created correctly
     - Verify all expected files present (credentials, node, contract, package.json, tsconfig.json, README, tests, fixtures)
@@ -406,11 +406,11 @@ The critical architectural elements are:
     - Test fixture generation from IR examples
     - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.6, 4.7, 4.8_
 
-- [ ] 12. Checkpoint - Verify full emission stage works
+- [x] 12. Checkpoint - Verify full emission stage works
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 13. Implement Stage 5: Verify
-  - [ ] 13.1 Create `src/verify.ts` with typecheck function
+- [x] 13. Implement Stage 5: Verify
+  - [x] 13.1 Create `src/verify.ts` with typecheck function
     - Implement `verify(tempDir: string, targetDir: string): Promise<void>` function
     - Create function `runTypecheck(tempDir: string): Promise<TypecheckResult>`
     - Invoke `tsc --noEmit --project {tempDir}/tsconfig.json` as subprocess
@@ -420,7 +420,7 @@ The critical architectural elements are:
     - If tsc not in PATH, throw error stating TypeScript must be installed
     - _Requirements: 5.1 (all criteria)_
 
-  - [ ] 13.2 Implement compilation and dynamic import
+  - [x] 13.2 Implement compilation and dynamic import
     - Create function `runCompile(tempDir: string): Promise<CompileResult>`
     - Invoke `tsc --project {tempDir}/tsconfig.json` to compile to JavaScript
     - If compilation fails, return errors
@@ -430,7 +430,7 @@ The critical architectural elements are:
     - If import fails, return error with import failure message
     - _Requirements: 5.2 (criteria 1-3)_
 
-  - [ ] 13.3 Implement node structure verification
+  - [x] 13.3 Implement node structure verification
     - Create function `verifyNodeStructure(nodeClass: unknown): StructureResult`
     - Check nodeClass has `description` property
     - Check nodeClass has `execute` method
@@ -439,7 +439,7 @@ The critical architectural elements are:
     - Return `{ success: true }` if all checks pass
     - _Requirements: 5.2 (criteria 4-6)_
 
-  - [ ] 13.4 Implement test execution
+  - [x] 13.4 Implement test execution
     - Create function `runTests(tempDir: string): Promise<TestResult>`
     - Invoke `vitest run --config {tempDir}/vitest.config.ts` as subprocess (or use default config)
     - Set environment to NOT include vendor API credentials (test offline fixture mode)
@@ -450,7 +450,7 @@ The critical architectural elements are:
     - If vitest not available, throw error stating vitest must be installed
     - _Requirements: 5.3 (all criteria)_
 
-  - [ ] 13.5 Implement atomic move to target directory
+  - [x] 13.5 Implement atomic move to target directory
     - After all verification passes (typecheck, compile, import, structure, tests), move temp directory into place
     - Check if targetDir exists, remove it first with `fs.promises.rm(targetDir, { recursive: true })`
     - Perform atomic move: `fs.promises.rename(tempDir, targetDir)`
@@ -458,7 +458,7 @@ The critical architectural elements are:
     - Ensure temporary directory is cleaned up on ANY error (wrap all verification in try/finally)
     - _Requirements: 5.1 (criterion 6), Atomic generation design requirement_
 
-  - [ ]* 13.6 Write unit tests for verify stage
+  - [x]* 13.6 Write unit tests for verify stage
     - Mock tsc subprocess calls
     - Test successful typecheck
     - Test typecheck_failed with errors
@@ -475,11 +475,11 @@ The critical architectural elements are:
     - Test temporary directory cleanup on error
     - _Requirements: 5.1, 5.2, 5.3_
 
-- [ ] 14. Checkpoint - Verify verification stage works
+- [x] 14. Checkpoint - Verify verification stage works
   - Ensure all tests pass, ask the user if questions arise.
 
-- [ ] 15. Implement CLI orchestration
-  - [ ] 15.1 Create `src/cli.ts` entry point
+- [x] 15. Implement CLI orchestration
+  - [x] 15.1 Create `src/cli.ts` entry point
     - Import all stage functions (ingest, extract, validate, emit, verify)
     - Parse command-line arguments for config file path
     - Load configuration using config.loadConfig
@@ -487,7 +487,7 @@ The critical architectural elements are:
     - Call stages in sequence: ingest → extract → validate → emit → verify
     - _Requirements: Pipeline orchestration_
 
-  - [ ] 15.2 Implement error formatting and reporting
+  - [x] 15.2 Implement error formatting and reporting
     - Create function `formatError(error: GeneratorError): string`
     - Switch on error.stage and error.type
     - Format ingest errors with URL/path, status codes, error details
@@ -498,19 +498,19 @@ The critical architectural elements are:
     - Exit with code 1 on any error
     - _Requirements: Error reporting design requirement_
 
-  - [ ] 15.3 Implement success logging and exit
+  - [x] 15.3 Implement success logging and exit
     - When verify completes successfully, log success message
     - Log generated package path
     - Exit with code 0
     - _Requirements: Pipeline orchestration_
 
-  - [ ] 15.4 Add CLI entry point in package.json
+  - [x] 15.4 Add CLI entry point in package.json
     - Add "bin" field in package.json pointing to compiled cli.js
     - Add shebang to cli.ts: `#!/usr/bin/env node`
     - Ensure TypeScript compilation preserves shebang
     - _Requirements: CLI usability_
 
-  - [ ]* 15.5 Write integration tests for CLI
+  - [x]* 15.5 Write integration tests for CLI
     - Test end-to-end generation from sample configuration
     - Mock kiro-cli subprocess to return fixture PartialIRs
     - Verify complete package structure generated
@@ -519,11 +519,11 @@ The critical architectural elements are:
     - Test idempotent regeneration (re-running with same config)
     - _Requirements: All stages integration_
 
-- [ ] 16. Checkpoint - Verify complete pipeline works
+- [x] 16. Checkpoint - Verify complete pipeline works
   - Ensure all tests pass, ask the user if questions arise.
 
 - [ ] 17. Create extraction prompt template
-  - [ ] 17.1 Create `src/prompts/extraction.ts` with prompt template
+  - [~] 17.1 Create `src/prompts/extraction.ts` with prompt template
     - Define prompt string template with placeholders: {documentation_chunk}, {PartialIR_type_definition}, {output_file_path}
     - Include complete PartialIR TypeScript interface in prompt
     - Add detailed extraction instructions (what to extract, what NOT to infer/assume)
@@ -534,7 +534,7 @@ The critical architectural elements are:
     - Instruct to NOT include source metadata (content_hash, extracted_at) or schema_version
     - _Requirements: 2.1, Extraction prompt design requirement_
 
-  - [ ] 17.2 Integrate prompt template into extract.ts
+  - [~] 17.2 Integrate prompt template into extract.ts
     - Import prompt template in extract.ts
     - Substitute placeholders with actual values (chunk content, output path)
     - Include PartialIR type definition as string in prompt
@@ -542,7 +542,7 @@ The critical architectural elements are:
     - _Requirements: 2.1 (criterion 2)_
 
 - [ ] 18. Documentation and examples
-  - [ ] 18.1 Create main README for driftnode package
+  - [~] 18.1 Create main README for driftnode package
     - Explain what driftnode does (generates n8n nodes from prose documentation)
     - Explain the five-stage pipeline
     - Document configuration file format with examples
@@ -551,14 +551,14 @@ The critical architectural elements are:
     - Document zero runtime dependencies guarantee
     - _Requirements: Usability and documentation_
 
-  - [ ] 18.2 Create example configuration files
+  - [~] 18.2 Create example configuration files
     - Create `examples/vultr-config.json` with URL-based documentation source
     - Create `examples/local-config.json` with file-based documentation source
     - Create `examples/filtered-config.json` with include filters
     - Document each example in README
     - _Requirements: Usability and documentation_
 
-  - [ ] 18.3 Document generator architecture
+  - [~] 18.3 Document generator architecture
     - Create `docs/architecture.md` explaining five stages
     - Document IR schema with examples
     - Document error taxonomy and precedence
@@ -567,7 +567,7 @@ The critical architectural elements are:
     - Document zero import enforcement
     - _Requirements: Maintainability and documentation_
 
-  - [ ] 18.4 Document generated package structure
+  - [~] 18.4 Document generated package structure
     - Create `docs/generated-package.md` explaining what is emitted
     - Document credentials file structure and variations by auth type
     - Document node class structure
@@ -577,7 +577,7 @@ The critical architectural elements are:
     - _Requirements: Usability and documentation_
 
 - [ ] 19. Final integration and cleanup
-  - [ ] 19.1 End-to-end test with real documentation
+  - [~] 19.1 End-to-end test with real documentation
     - Find small public API documentation (or create fixture)
     - Create configuration file pointing to real documentation
     - Run complete generation pipeline
@@ -586,13 +586,13 @@ The critical architectural elements are:
     - Verify TypeScript compilation works
     - _Requirements: End-to-end validation_
 
-  - [ ] 19.2 Clean up temporary files and directories
+  - [~] 19.2 Clean up temporary files and directories
     - Ensure all `.tmp-{vendor}/` directories are removed after generation (success or failure)
     - Add cleanup to error paths in verify.ts
     - Verify no artifacts left behind after failed generation
     - _Requirements: Clean execution environment_
 
-  - [ ] 19.3 Final code review and polish
+  - [~] 19.3 Final code review and polish
     - Review all error messages for clarity and actionability
     - Ensure consistent code style (consider adding prettier/eslint)
     - Ensure all TODOs and FIXMEs are resolved or converted to GitHub issues
@@ -610,7 +610,7 @@ The critical architectural elements are:
     - Compare generated files against committed snapshots
     - _Requirements: Comprehensive testing_
 
-- [ ] 20. Final checkpoint - Complete implementation validated
+- [~] 20. Final checkpoint - Complete implementation validated
   - Ensure all tests pass, ask the user if questions arise.
 
 ## Notes

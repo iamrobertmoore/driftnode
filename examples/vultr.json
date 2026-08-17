@@ -1,0 +1,25 @@
+{
+  "vendor": "vultr",
+  "documentation": {
+    "type": "url",
+    "url": "https://www.vultr.com/api/"
+  },
+  "include": [
+    {
+      "resource": "regions",
+      "operations": ["list"]
+    },
+    {
+      "resource": "plans",
+      "operations": ["list"]
+    },
+    {
+      "resource": "ssh-keys",
+      "operations": ["list", "get", "create", "update", "delete"]
+    },
+    {
+      "resource": "instances",
+      "operations": ["list", "get", "create", "delete", "reboot"]
+    }
+  ]
+}

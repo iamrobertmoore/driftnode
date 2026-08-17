@@ -1268,6 +1268,410 @@ describe('Emit Stage', () => {
       expect(nodeContent).toContain("'my-api-serviceApi'");
     });
   });
+
+  describe('Package.json Emission (Task 11.2 - Requirement 21)', () => {
+    it('should generate package.json with correct name and version', async () => {
+      const ir = createSampleIR({ parameters: [] });
+      const config: GeneratorConfig = {
+        vendor: 'test-vendor',
+        documentation: { type: 'url', url: 'https://example.com/docs' },
+      };
+
+      await emit(ir, config, testTempDir);
+
+      const packageJsonPath = path.join(testTempDir, 'package.json');
+      expect(fs.existsSync(packageJsonPath)).toBe(true);
+
+      const packageJson = JSON.parse(await fs.promises.readFile(packageJsonPath, 'utf-8'));
+
+      expect(packageJson.name).toBe('n8n-nodes-test-vendor');
+      expect(packageJson.version).toBe('0.1.0');
+    });
+
+    it('should have zero runtime dependencies', async () => {
+      const ir = createSampleIR({ parameters: [] });
+      const config: GeneratorConfig = {
+        vendor: 'test-vendor',
+        documentation: { type: 'url', url: 'https://example.com/docs' },
+      };
+
+      await emit(ir, config, testTempDir);
+
+      const packageJsonPath = path.join(testTempDir, 'package.json');
+      const packageJson = JSON.parse(await fs.promises.readFile(packageJsonPath, 'utf-8'));
+
+      // Zero runtime dependencies is a HARD requirement
+      expect(packageJson.dependencies).toBeUndefined();
+    });
+
+    it('should include required devDependencies', async () => {
+      const ir = createSampleIR({ parameters: [] });
+      const config: GeneratorConfig = {
+        vendor: 'test-vendor',
+        documentation: { type: 'url', url: 'https://example.com/docs' },
+      };
+
+      await emit(ir, config, testTempDir);
+
+      const packageJsonPath = path.join(testTempDir, 'package.json');
+      const packageJson = JSON.parse(await fs.promises.readFile(packageJsonPath, 'utf-8'));
+
+      expect(packageJson.devDependencies).toBeDefined();
+      expect(packageJson.devDependencies['n8n-workflow']).toBeDefined();
+      expect(packageJson.devDependencies['n8n-core']).toBeDefined();
+      expect(packageJson.devDependencies['typescript']).toBeDefined();
+      expect(packageJson.devDependencies['vitest']).toBeDefined();
+      expect(packageJson.devDependencies['@types/node']).toBeDefined();
+    });
+
+    it('should include npm scripts for build, test, and typecheck', async () => {
+      const ir = createSampleIR({ parameters: [] });
+      const config: GeneratorConfig = {
+        vendor: 'test-vendor',
+        documentation: { type: 'url', url: 'https://example.com/docs' },
+      };
+
+      await emit(ir, config, testTempDir);
+
+      const packageJsonPath = path.join(testTempDir, 'package.json');
+      const packageJson = JSON.parse(await fs.promises.readFile(packageJsonPath, 'utf-8'));
+
+      expect(packageJson.scripts).toBeDefined();
+      expect(packageJson.scripts.build).toBe('tsc');
+      expect(packageJson.scripts.test).toBe('vitest run');
+      expect(packageJson.scripts.typecheck).toBe('tsc --noEmit');
+    });
+
+    it('should include n8n metadata with usableAsTool: true', async () => {
+      const ir = createSampleIR({ parameters: [] });
+      const config: GeneratorConfig = {
+        vendor: 'test-vendor',
+        documentation: { type: 'url', url: 'https://example.com/docs' },
+      };
+
+      await emit(ir, config, testTempDir);
+
+      const packageJsonPath = path.join(testTempDir, 'package.json');
+      const packageJson = JSON.parse(await fs.promises.readFile(packageJsonPath, 'utf-8'));
+
+      expect(packageJson.n8n).toBeDefined();
+      expect(packageJson.n8n.usableAsTool).toBe(true);
+      expect(packageJson.n8n.n8nNodesApiVersion).toBe(1);
+    });
+
+    it('should reference credentials file in n8n metadata', async () => {
+      const ir = createSampleIR({ parameters: [] });
+      const config: GeneratorConfig = {
+        vendor: 'test-vendor',
+        documentation: { type: 'url', url: 'https://example.com/docs' },
+      };
+
+      await emit(ir, config, testTempDir);
+
+      const packageJsonPath = path.join(testTempDir, 'package.json');
+      const packageJson = JSON.parse(await fs.promises.readFile(packageJsonPath, 'utf-8'));
+
+      expect(packageJson.n8n.credentials).toBeDefined();
+      expect(packageJson.n8n.credentials).toHaveLength(1);
+      expect(packageJson.n8n.credentials[0].className).toBe('TestVendorApi');
+      expect(packageJson.n8n.credentials[0].sourcePath).toBe('dist/credentials/TestVendorApi.credentials.js');
+    });
+
+    it('should reference node file in n8n metadata', async () => {
+      const ir = createSampleIR({ parameters: [] });
+      const config: GeneratorConfig = {
+        vendor: 'test-vendor',
+        documentation: { type: 'url', url: 'https://example.com/docs' },
+      };
+
+      await emit(ir, config, testTempDir);
+
+      const packageJsonPath = path.join(testTempDir, 'package.json');
+      const packageJson = JSON.parse(await fs.promises.readFile(packageJsonPath, 'utf-8'));
+
+      expect(packageJson.n8n.nodes).toBeDefined();
+      expect(packageJson.n8n.nodes).toHaveLength(1);
+      expect(packageJson.n8n.nodes[0].className).toBe('TestVendor');
+      expect(packageJson.n8n.nodes[0].sourcePath).toBe('dist/nodes/TestVendor/TestVendor.node.js');
+    });
+
+    it('should handle multi-word vendor names correctly', async () => {
+      const ir = createSampleIR({ parameters: [] });
+      const config: GeneratorConfig = {
+        vendor: 'digital-ocean',
+        documentation: { type: 'url', url: 'https://example.com/docs' },
+      };
+
+      await emit(ir, config, testTempDir);
+
+      const packageJsonPath = path.join(testTempDir, 'package.json');
+      const packageJson = JSON.parse(await fs.promises.readFile(packageJsonPath, 'utf-8'));
+
+      // Package name should keep kebab-case
+      expect(packageJson.name).toBe('n8n-nodes-digital-ocean');
+      
+      // Class names should be PascalCase
+      expect(packageJson.n8n.credentials[0].className).toBe('DigitalOceanApi');
+      expect(packageJson.n8n.nodes[0].className).toBe('DigitalOcean');
+      
+      // File paths should use PascalCase
+      expect(packageJson.n8n.credentials[0].sourcePath).toBe('dist/credentials/DigitalOceanApi.credentials.js');
+      expect(packageJson.n8n.nodes[0].sourcePath).toBe('dist/nodes/DigitalOcean/DigitalOcean.node.js');
+    });
+
+    it('should include documentation URL from IR source', async () => {
+      const ir: IntermediateRepresentation = {
+        schema_version: '1.0.0',
+        source: {
+          url: 'https://docs.vendor.com/api',
+          content_hash: 'abc123',
+          extracted_at: '2024-01-01T00:00:00Z',
+        },
+        base_url: 'https://api.vendor.com',
+        auth: {
+          type: 'api_key',
+          location: 'header',
+          header_name: 'X-API-Key',
+        },
+        resources: createMinimalResources(),
+      };
+
+      const config: GeneratorConfig = {
+        vendor: 'test-vendor',
+        documentation: { type: 'url', url: 'https://docs.vendor.com/api' },
+      };
+
+      await emit(ir, config, testTempDir);
+
+      const packageJsonPath = path.join(testTempDir, 'package.json');
+      const packageJson = JSON.parse(await fs.promises.readFile(packageJsonPath, 'utf-8'));
+
+      expect(packageJson.homepage).toBe('https://docs.vendor.com/api');
+    });
+
+    it('should include appropriate keywords', async () => {
+      const ir = createSampleIR({ parameters: [] });
+      const config: GeneratorConfig = {
+        vendor: 'test-vendor',
+        documentation: { type: 'url', url: 'https://example.com/docs' },
+      };
+
+      await emit(ir, config, testTempDir);
+
+      const packageJsonPath = path.join(testTempDir, 'package.json');
+      const packageJson = JSON.parse(await fs.promises.readFile(packageJsonPath, 'utf-8'));
+
+      expect(packageJson.keywords).toBeDefined();
+      expect(packageJson.keywords).toContain('n8n-community-node-package');
+      expect(packageJson.keywords).toContain('test-vendor');
+    });
+  });
+
+  describe('Contract File Emission (Task 11.1)', () => {
+    it('should emit IR to contract/ir.json with correct formatting', async () => {
+      const ir: IntermediateRepresentation = {
+        schema_version: '1.0.0',
+        source: {
+          url: 'https://example.com/docs',
+          content_hash: 'abc123def456',
+          extracted_at: '2024-01-15T12:00:00Z',
+        },
+        base_url: 'https://api.example.com/v2',
+        auth: {
+          type: 'api_key',
+          location: 'header',
+          header_name: 'X-API-Key',
+        },
+        resources: [
+          {
+            name: 'instances',
+            display_name: 'Instances',
+            description: 'Manage instances',
+            operations: [
+              {
+                name: 'list',
+                display_name: 'List Instances',
+                description: 'List all instances',
+                http_method: 'GET',
+                path: '/instances',
+                parameters: [],
+                response_shape: { type: 'array', undocumented: false },
+                examples: [],
+              },
+            ],
+          },
+        ],
+      };
+
+      const config: GeneratorConfig = {
+        vendor: 'test-vendor',
+        documentation: { type: 'url', url: 'https://example.com/docs' },
+      };
+
+      await emit(ir, config, testTempDir);
+
+      const contractPath = path.join(testTempDir, 'contract', 'ir.json');
+      expect(fs.existsSync(contractPath)).toBe(true);
+
+      const contractContent = await fs.promises.readFile(contractPath, 'utf-8');
+      const parsedContract = JSON.parse(contractContent);
+
+      // Verify all required fields are present
+      expect(parsedContract.schema_version).toBe('1.0.0');
+      expect(parsedContract.source).toBeDefined();
+      expect(parsedContract.source.url).toBe('https://example.com/docs');
+      expect(parsedContract.source.content_hash).toBe('abc123def456');
+      expect(parsedContract.source.extracted_at).toBe('2024-01-15T12:00:00Z');
+      expect(parsedContract.base_url).toBe('https://api.example.com/v2');
+      expect(parsedContract.auth).toBeDefined();
+      expect(parsedContract.auth.type).toBe('api_key');
+      expect(parsedContract.resources).toBeDefined();
+      expect(parsedContract.resources).toHaveLength(1);
+
+      // Verify JSON formatting (2-space indentation)
+      expect(contractContent).toContain('  "schema_version"');
+      expect(contractContent).toContain('    "url"');
+    });
+
+    it('should emit IR with local file source path', async () => {
+      const ir: IntermediateRepresentation = {
+        schema_version: '1.0.0',
+        source: {
+          path: '/local/docs/api.html',
+          content_hash: 'xyz789',
+          extracted_at: '2024-01-20T10:30:00Z',
+        },
+        base_url: 'https://api.local.com',
+        auth: {
+          type: 'bearer_token',
+          header_name: 'Authorization',
+        },
+        resources: createMinimalResources(),
+      };
+
+      const config: GeneratorConfig = {
+        vendor: 'local-vendor',
+        documentation: { type: 'file', path: '/local/docs/api.html' },
+      };
+
+      await emit(ir, config, testTempDir);
+
+      const contractPath = path.join(testTempDir, 'contract', 'ir.json');
+      const contractContent = await fs.promises.readFile(contractPath, 'utf-8');
+      const parsedContract = JSON.parse(contractContent);
+
+      // Verify source has path instead of url
+      expect(parsedContract.source.path).toBe('/local/docs/api.html');
+      expect(parsedContract.source.url).toBeUndefined();
+      expect(parsedContract.source.content_hash).toBe('xyz789');
+    });
+
+    it('should preserve complete IR structure including nested objects', async () => {
+      const ir: IntermediateRepresentation = {
+        schema_version: '1.0.0',
+        source: {
+          url: 'https://example.com/docs',
+          content_hash: 'hash123',
+          extracted_at: '2024-01-01T00:00:00Z',
+        },
+        base_url: 'https://api.example.com',
+        auth: {
+          type: 'oauth2',
+          authorize_url: 'https://example.com/oauth/authorize',
+          token_url: 'https://example.com/oauth/token',
+          scopes: ['read', 'write'],
+        },
+        resources: [
+          {
+            name: 'users',
+            display_name: 'Users',
+            description: 'User management',
+            operations: [
+              {
+                name: 'create',
+                display_name: 'Create User',
+                description: 'Create a new user',
+                http_method: 'POST',
+                path: '/users',
+                parameters: [
+                  {
+                    name: 'email',
+                    display_name: 'Email',
+                    description: 'User email address',
+                    location: 'body',
+                    type: { kind: 'string' },
+                    required: true,
+                    constraints: {
+                      pattern: '^[a-z@.]+$',
+                      min_length: 5,
+                      max_length: 100,
+                    },
+                  },
+                  {
+                    name: 'age',
+                    display_name: 'Age',
+                    description: 'User age',
+                    location: 'body',
+                    type: { kind: 'integer' },
+                    required: false,
+                    constraints: {
+                      minimum: 18,
+                      maximum: 120,
+                    },
+                  },
+                ],
+                response_shape: {
+                  type: 'object',
+                  properties: {
+                    id: { type: 'string', required: true },
+                    email: { type: 'string', required: true },
+                    age: { type: 'number', required: false },
+                  },
+                  undocumented: false,
+                },
+                examples: [
+                  {
+                    name: 'Create user example',
+                    request: { email: 'test@example.com', age: 25 },
+                    response: { id: 'user-123', email: 'test@example.com', age: 25 },
+                    status_code: 201,
+                  },
+                ],
+              },
+            ],
+          },
+        ],
+      };
+
+      const config: GeneratorConfig = {
+        vendor: 'complex-vendor',
+        documentation: { type: 'url', url: 'https://example.com/docs' },
+      };
+
+      await emit(ir, config, testTempDir);
+
+      const contractPath = path.join(testTempDir, 'contract', 'ir.json');
+      const contractContent = await fs.promises.readFile(contractPath, 'utf-8');
+      const parsedContract = JSON.parse(contractContent);
+
+      // Verify complete nested structure is preserved
+      expect(parsedContract.auth.type).toBe('oauth2');
+      expect(parsedContract.auth.scopes).toEqual(['read', 'write']);
+      
+      const operation = parsedContract.resources[0].operations[0];
+      expect(operation.parameters).toHaveLength(2);
+      expect(operation.parameters[0].constraints).toBeDefined();
+      expect(operation.parameters[0].constraints.pattern).toBe('^[a-z@.]+$');
+      expect(operation.parameters[0].constraints.min_length).toBe(5);
+      expect(operation.parameters[1].constraints.minimum).toBe(18);
+      
+      expect(operation.response_shape.properties).toBeDefined();
+      expect(operation.response_shape.properties.id.required).toBe(true);
+      
+      expect(operation.examples).toHaveLength(1);
+      expect(operation.examples[0].status_code).toBe(201);
+    });
+  });
 });
 
 /**
@@ -1338,3 +1742,176 @@ function createSampleIR(overrides: { parameters?: Parameter[] } = {}): Intermedi
     ],
   };
 }
+
+
+  describe('Tsconfig.json Emission (Task 11.3 - Requirement 21)', () => {
+    it('should generate tsconfig.json with CommonJS module', async () => {
+      const ir = createSampleIR({ parameters: [] });
+      const config: GeneratorConfig = {
+        vendor: 'test-vendor',
+        documentation: { type: 'url', url: 'https://example.com/docs' },
+      };
+
+      const localTempDir = path.join(process.cwd(), '.tmp-test-emit-tsconfig');
+      await fs.promises.mkdir(localTempDir, { recursive: true });
+
+      try {
+        await emit(ir, config, localTempDir);
+
+        const tsconfigPath = path.join(localTempDir, 'tsconfig.json');
+        expect(fs.existsSync(tsconfigPath)).toBe(true);
+
+        const tsconfigContent = await fs.promises.readFile(tsconfigPath, 'utf-8');
+        const tsconfig = JSON.parse(tsconfigContent);
+
+        // Module MUST be commonjs (required by n8n)
+        expect(tsconfig.compilerOptions.module).toBe('commonjs');
+      } finally {
+        await fs.promises.rm(localTempDir, { recursive: true });
+      }
+    });
+
+    it('should set target to ES2020 or higher', async () => {
+      const ir = createSampleIR({ parameters: [] });
+      const config: GeneratorConfig = {
+        vendor: 'test-vendor',
+        documentation: { type: 'url', url: 'https://example.com/docs' },
+      };
+
+      const localTempDir = path.join(process.cwd(), '.tmp-test-emit-tsconfig-2');
+      await fs.promises.mkdir(localTempDir, { recursive: true });
+
+      try {
+        await emit(ir, config, localTempDir);
+
+        const tsconfigPath = path.join(localTempDir, 'tsconfig.json');
+        const tsconfigContent = await fs.promises.readFile(tsconfigPath, 'utf-8');
+        const tsconfig = JSON.parse(tsconfigContent);
+
+        expect(tsconfig.compilerOptions.target).toBe('ES2020');
+      } finally {
+        await fs.promises.rm(localTempDir, { recursive: true });
+      }
+    });
+
+    it('should configure outDir and rootDir correctly', async () => {
+      const ir = createSampleIR({ parameters: [] });
+      const config: GeneratorConfig = {
+        vendor: 'test-vendor',
+        documentation: { type: 'url', url: 'https://example.com/docs' },
+      };
+
+      const localTempDir = path.join(process.cwd(), '.tmp-test-emit-tsconfig-3');
+      await fs.promises.mkdir(localTempDir, { recursive: true });
+
+      try {
+        await emit(ir, config, localTempDir);
+
+        const tsconfigPath = path.join(localTempDir, 'tsconfig.json');
+        const tsconfigContent = await fs.promises.readFile(tsconfigPath, 'utf-8');
+        const tsconfig = JSON.parse(tsconfigContent);
+
+        expect(tsconfig.compilerOptions.outDir).toBe('./dist');
+        expect(tsconfig.compilerOptions.rootDir).toBe('./src');
+      } finally {
+        await fs.promises.rm(localTempDir, { recursive: true });
+      }
+    });
+
+    it('should enable strict mode and esModuleInterop', async () => {
+      const ir = createSampleIR({ parameters: [] });
+      const config: GeneratorConfig = {
+        vendor: 'test-vendor',
+        documentation: { type: 'url', url: 'https://example.com/docs' },
+      };
+
+      const localTempDir = path.join(process.cwd(), '.tmp-test-emit-tsconfig-4');
+      await fs.promises.mkdir(localTempDir, { recursive: true });
+
+      try {
+        await emit(ir, config, localTempDir);
+
+        const tsconfigPath = path.join(localTempDir, 'tsconfig.json');
+        const tsconfigContent = await fs.promises.readFile(tsconfigPath, 'utf-8');
+        const tsconfig = JSON.parse(tsconfigContent);
+
+        expect(tsconfig.compilerOptions.strict).toBe(true);
+        expect(tsconfig.compilerOptions.esModuleInterop).toBe(true);
+      } finally {
+        await fs.promises.rm(localTempDir, { recursive: true });
+      }
+    });
+
+    it('should include correct source file patterns', async () => {
+      const ir = createSampleIR({ parameters: [] });
+      const config: GeneratorConfig = {
+        vendor: 'test-vendor',
+        documentation: { type: 'url', url: 'https://example.com/docs' },
+      };
+
+      const localTempDir = path.join(process.cwd(), '.tmp-test-emit-tsconfig-5');
+      await fs.promises.mkdir(localTempDir, { recursive: true });
+
+      try {
+        await emit(ir, config, localTempDir);
+
+        const tsconfigPath = path.join(localTempDir, 'tsconfig.json');
+        const tsconfigContent = await fs.promises.readFile(tsconfigPath, 'utf-8');
+        const tsconfig = JSON.parse(tsconfigContent);
+
+        expect(tsconfig.include).toContain('credentials/**/*.ts');
+        expect(tsconfig.include).toContain('nodes/**/*.ts');
+        expect(tsconfig.include).toContain('src/**/*.ts');
+      } finally {
+        await fs.promises.rm(localTempDir, { recursive: true });
+      }
+    });
+
+    it('should exclude node_modules and dist directories', async () => {
+      const ir = createSampleIR({ parameters: [] });
+      const config: GeneratorConfig = {
+        vendor: 'test-vendor',
+        documentation: { type: 'url', url: 'https://example.com/docs' },
+      };
+
+      const localTempDir = path.join(process.cwd(), '.tmp-test-emit-tsconfig-6');
+      await fs.promises.mkdir(localTempDir, { recursive: true });
+
+      try {
+        await emit(ir, config, localTempDir);
+
+        const tsconfigPath = path.join(localTempDir, 'tsconfig.json');
+        const tsconfigContent = await fs.promises.readFile(tsconfigPath, 'utf-8');
+        const tsconfig = JSON.parse(tsconfigContent);
+
+        expect(tsconfig.exclude).toContain('node_modules');
+        expect(tsconfig.exclude).toContain('dist');
+      } finally {
+        await fs.promises.rm(localTempDir, { recursive: true });
+      }
+    });
+
+    it('should enable declaration generation and source maps', async () => {
+      const ir = createSampleIR({ parameters: [] });
+      const config: GeneratorConfig = {
+        vendor: 'test-vendor',
+        documentation: { type: 'url', url: 'https://example.com/docs' },
+      };
+
+      const localTempDir = path.join(process.cwd(), '.tmp-test-emit-tsconfig-7');
+      await fs.promises.mkdir(localTempDir, { recursive: true });
+
+      try {
+        await emit(ir, config, localTempDir);
+
+        const tsconfigPath = path.join(localTempDir, 'tsconfig.json');
+        const tsconfigContent = await fs.promises.readFile(tsconfigPath, 'utf-8');
+        const tsconfig = JSON.parse(tsconfigContent);
+
+        expect(tsconfig.compilerOptions.declaration).toBe(true);
+        expect(tsconfig.compilerOptions.sourceMap).toBe(true);
+      } finally {
+        await fs.promises.rm(localTempDir, { recursive: true });
+      }
+    });
+  });
