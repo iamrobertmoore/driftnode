@@ -1,0 +1,135 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "1. Verify existing scaffolding and create core type definitions": [
+      {
+        "executionId": "580c43cc-6e9a-48ee-b70b-6ef2b70ed96d",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1786976633467
+      },
+      {
+        "executionId": "580c43cc-6e9a-48ee-b70b-6ef2b70ed96d",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1786976636748
+      },
+      {
+        "executionId": "580c43cc-6e9a-48ee-b70b-6ef2b70ed96d",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1786976848243
+      }
+    ],
+    "2.1 Create `src/config.ts` with GeneratorConfig interface": [
+      {
+        "executionId": "580c43cc-6e9a-48ee-b70b-6ef2b70ed96d",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1786976853393
+      },
+      {
+        "executionId": "580c43cc-6e9a-48ee-b70b-6ef2b70ed96d",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1786976858898
+      },
+      {
+        "executionId": "580c43cc-6e9a-48ee-b70b-6ef2b70ed96d",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1786977284224
+      }
+    ],
+    "2.2 Write unit tests for configuration parsing": [
+      {
+        "executionId": "580c43cc-6e9a-48ee-b70b-6ef2b70ed96d",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1786976854292
+      },
+      {
+        "executionId": "580c43cc-6e9a-48ee-b70b-6ef2b70ed96d",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1786977285174
+      },
+      {
+        "executionId": "580c43cc-6e9a-48ee-b70b-6ef2b70ed96d",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1786977289469
+      }
+    ],
+    "2. Implement configuration file parsing": [
+      {
+        "executionId": "580c43cc-6e9a-48ee-b70b-6ef2b70ed96d",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1786977284307
+      }
+    ],
+    "3.1 Create `src/ingest.ts` with DocumentChunk type and ingest function": [
+      {
+        "executionId": "580c43cc-6e9a-48ee-b70b-6ef2b70ed96d",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1786977294745
+      },
+      {
+        "executionId": "580c43cc-6e9a-48ee-b70b-6ef2b70ed96d",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1786977303581
+      },
+      {
+        "executionId": "580c43cc-6e9a-48ee-b70b-6ef2b70ed96d",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1786977515810
+      }
+    ],
+    "3.2 Implement HTML normalization": [
+      {
+        "executionId": "580c43cc-6e9a-48ee-b70b-6ef2b70ed96d",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1786977295654
+      },
+      {
+        "executionId": "580c43cc-6e9a-48ee-b70b-6ef2b70ed96d",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1786977516572
+      }
+    ],
+    "3.3 Implement Markdown and JSON normalization": [
+      {
+        "executionId": "580c43cc-6e9a-48ee-b70b-6ef2b70ed96d",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1786977297009
+      },
+      {
+        "executionId": "580c43cc-6e9a-48ee-b70b-6ef2b70ed96d",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1786977517315
+      }
+    ],
+    "3.4 Implement documentation chunking": [
+      {
+        "executionId": "580c43cc-6e9a-48ee-b70b-6ef2b70ed96d",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1786977297465
+      },
+      {
+        "executionId": "580c43cc-6e9a-48ee-b70b-6ef2b70ed96d",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1786977518141
+      }
+    ],
+    "3.5 Write unit tests for ingest stage": [
+      {
+        "executionId": "580c43cc-6e9a-48ee-b70b-6ef2b70ed96d",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1786977298381
+      },
+      {
+        "executionId": "580c43cc-6e9a-48ee-b70b-6ef2b70ed96d",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1786977519115
+      }
+    ],
+    "3. Implement Stage 1: Ingest": [
+      {
+        "executionId": "580c43cc-6e9a-48ee-b70b-6ef2b70ed96d",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1786977518265
+      }
+    ]
+  }
+}

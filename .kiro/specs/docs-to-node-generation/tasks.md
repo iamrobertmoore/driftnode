@@ -12,7 +12,7 @@ The critical architectural elements are:
 
 ## Tasks
 
-- [ ] 1. Verify existing scaffolding and create core type definitions
+- [x] 1. Verify existing scaffolding and create core type definitions
   - Verify `packages/driftnode/` directory structure exists
   - Verify `tsconfig.json` has `module: "commonjs"` and `target: "ES2022"` (already configured)
   - Verify `package.json` has workspace configuration, scripts, bin entry, and devDependencies (already configured)
@@ -24,8 +24,8 @@ The critical architectural elements are:
   - _Requirements: Foundation for all subsequent tasks_
   - _Note: Root package.json, tsconfig files, .gitignore, and GitHub Actions workflows already exist and MUST NOT be overwritten_
 
-- [ ] 2. Implement configuration file parsing
-  - [ ] 2.1 Create `src/config.ts` with GeneratorConfig interface
+- [x] 2. Implement configuration file parsing
+  - [x] 2.1 Create `src/config.ts` with GeneratorConfig interface
     - Define DocumentSource type (`{ type: 'url', url: string } | { type: 'file', path: string }`)
     - Define GeneratorConfig interface with vendor, documentation, and optional include fields
     - Implement `loadConfig(path: string): Promise<GeneratorConfig>` function
@@ -33,7 +33,7 @@ The critical architectural elements are:
     - Add validation for file path existence when configuration file is specified
     - _Requirements: 1.0 (configuration reading for all stages)_
 
-  - [ ]* 2.2 Write unit tests for configuration parsing
+  - [x]* 2.2 Write unit tests for configuration parsing
     - Test valid URL-based configuration
     - Test valid file-based configuration
     - Test missing required fields
@@ -41,8 +41,8 @@ The critical architectural elements are:
     - Test file not found scenarios
     - _Requirements: 1.0_
 
-- [ ] 3. Implement Stage 1: Ingest
-  - [ ] 3.1 Create `src/ingest.ts` with DocumentChunk type and ingest function
+- [x] 3. Implement Stage 1: Ingest
+  - [x] 3.1 Create `src/ingest.ts` with DocumentChunk type and ingest function
     - Define `DocumentChunk = { content: string, start: number, end: number }` type
     - Implement `ingest(source: DocumentSource): Promise<DocumentChunk[]>` function
     - Create `fetchRemote(url: string)` helper with layered error precedence
@@ -50,7 +50,7 @@ The critical architectural elements are:
     - Implement 30-second timeout for HTTP requests
     - _Requirements: 1.1, 1.2, 1.3, 1.4_
 
-  - [ ] 3.2 Implement HTML normalization
+  - [x] 3.2 Implement HTML normalization
     - Strip `<script>` and `<style>` tags completely
     - Convert HTML entities to text equivalents (including inside code blocks)
     - Preserve code blocks and pre-formatted text with exact whitespace
@@ -58,14 +58,14 @@ The critical architectural elements are:
     - Remove leading and trailing whitespace
     - _Requirements: 1.3 (all criteria)_
 
-  - [ ] 3.3 Implement Markdown and JSON normalization
+  - [x] 3.3 Implement Markdown and JSON normalization
     - Preserve Markdown formatting as-is
     - Pretty-print JSON with 2-space indentation
     - Normalize line endings to LF
     - Remove leading and trailing whitespace
     - _Requirements: 1.3 (criteria 4-7)_
 
-  - [ ] 3.4 Implement documentation chunking
+  - [x] 3.4 Implement documentation chunking
     - Split documentation exceeding 50,000 characters
     - Preserve complete sentences at chunk boundaries
     - Preserve complete code blocks (detect ``` fences and </code> tags)
@@ -74,7 +74,7 @@ The critical architectural elements are:
     - Treat documents under 50k characters as single chunk
     - _Requirements: 1.4 (all criteria)_
 
-  - [ ]* 3.5 Write unit tests for ingest stage
+  - [x]* 3.5 Write unit tests for ingest stage
     - Test remote fetch with success, network error, timeout, auth denied (401/403), not found (404), HTTP errors, unsupported content type, empty response
     - Test local file read with success, file not found, permission denied, empty file, unsupported extension
     - Test error precedence for remote fetch (transport > HTTP status > payload)

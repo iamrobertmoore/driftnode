@@ -10,3 +10,6 @@ coverage/
 
 # The .kiro directory is a required submission artefact and is deliberately
 # NOT ignored here. Do not add it. See README, "How I used Kiro".
+
+# Temporary directories created during generation
+.tmp-*/
