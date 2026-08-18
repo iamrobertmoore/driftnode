@@ -13,3 +13,7 @@ coverage/
 
 # Temporary directories created during generation
 .tmp-*/
+
+# Asset folders produced by a browser "Save Page As, Complete" save.
+# Only the .html snapshot itself belongs in the repo.
+*_files/

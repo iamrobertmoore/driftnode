@@ -7,20 +7,35 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { DocumentSource, DocumentChunk } from './types.js';
+import { DocumentSource, DocumentChunk, GeneratorConfig } from './types.js';
 import { GeneratorError } from './errors.js';
+
+/**
+ * Identify the tool honestly rather than impersonating a browser.
+ *
+ * Node's fetch sends no User-Agent at all, which many documentation sites
+ * reject at the edge with a 403. A vendor who wants to block automated
+ * documentation readers should be able to, so this says what it is and where
+ * to find it rather than pretending to be Chrome.
+ */
+const DEFAULT_USER_AGENT =
+  'driftnode/0.1.0 (+https://github.com/iamrobertmoore/driftnode)';
 
 /**
  * Ingest documentation from a URL or local file
  * 
  * @param source - Documentation source (URL or file path)
+ * @param config - Optional generator config, used here for the User-Agent override
  * @returns Array of document chunks
  */
-export async function ingest(source: DocumentSource): Promise<DocumentChunk[]> {
+export async function ingest(
+  source: DocumentSource,
+  config?: Partial<GeneratorConfig>
+): Promise<DocumentChunk[]> {
   let content: string;
   
   if (source.type === 'url') {
-    const result = await fetchRemote(source.url);
+    const result = await fetchRemote(source.url, config?.userAgent);
     if (isError(result)) {
       throw result;
     }
@@ -44,25 +59,48 @@ export async function ingest(source: DocumentSource): Promise<DocumentChunk[]> {
  * Fetch documentation from a remote URL
  * Implements layered error precedence: transport > HTTP status > payload
  */
-async function fetchRemote(url: string): Promise<string | GeneratorError> {
+async function fetchRemote(
+  url: string,
+  userAgent?: string
+): Promise<string | GeneratorError> {
   try {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 30000);
-    
+
     let response: Response;
     try {
-      response = await fetch(url, { signal: controller.signal });
+      response = await fetch(url, {
+        signal: controller.signal,
+        headers: {
+          'User-Agent': userAgent ?? DEFAULT_USER_AGENT,
+          Accept: 'text/html, text/markdown, text/plain, application/json'
+        }
+      });
     } finally {
       clearTimeout(timeoutId);
     }
-    
+
     // HTTP status layer (after transport succeeds)
-    if (response.status === 401 || response.status === 403) {
+    // 401 and 403 are separated deliberately. A 401 means the documentation
+    // genuinely requires credentials. A 403 on a public documentation page is
+    // far more often bot protection reacting to a missing or unfamiliar
+    // User-Agent, and telling the user it is an authentication problem sends
+    // them looking in the wrong place.
+    if (response.status === 401) {
       return {
         stage: 'ingest',
         type: 'auth_denied',
         url,
-        status_code: response.status as 401 | 403
+        status_code: 401
+      };
+    }
+
+    if (response.status === 403) {
+      return {
+        stage: 'ingest',
+        type: 'bot_protection',
+        url,
+        status_code: 403
       };
     }
     
@@ -231,8 +269,10 @@ async function normalize(content: string, source: DocumentSource): Promise<strin
 /**
  * Normalize HTML content
  * - Strip script and style tags
+ * - Strip all other HTML tags while preserving text content
+ * - Preserve exact whitespace in <pre> and <code> blocks
  * - Convert HTML entities (including inside code blocks)
- * - Preserve code blocks with exact whitespace
+ * - Collapse multiple spaces/newlines in regular text
  * - Normalize line endings
  * - Trim whitespace
  */
@@ -243,14 +283,59 @@ function normalizeHtml(html: string): string {
   text = text.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
   text = text.replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '');
   
-  // Decode HTML entities (this happens EVERYWHERE, including code blocks)
+  // Step 1: Extract and preserve <pre> and <code> blocks with placeholders
+  const codeBlocks: string[] = [];
+  let codeBlockIndex = 0;
+  
+  // Extract <pre> blocks (with any attributes) - preserve inner HTML for nested tags
+  text = text.replace(/<pre\b[^>]*>([\s\S]*?)<\/pre>/gi, (match, content) => {
+    // Strip any nested tags from the content but preserve exact whitespace
+    let cleanContent = content.replace(/<[^>]+>/g, '');
+    codeBlocks[codeBlockIndex] = cleanContent;
+    // Use a placeholder WITHOUT adding newlines
+    const placeholder = `__CODEBLOCK${codeBlockIndex}__`;
+    codeBlockIndex++;
+    return placeholder;
+  });
+  
+  // Extract <code> blocks (with any attributes)
+  text = text.replace(/<code\b[^>]*>([\s\S]*?)<\/code>/gi, (match, content) => {
+    // Strip any nested tags from the content but preserve exact whitespace
+    let cleanContent = content.replace(/<[^>]+>/g, '');
+    codeBlocks[codeBlockIndex] = cleanContent;
+    const placeholder = `__CODEBLOCK${codeBlockIndex}__`;
+    codeBlockIndex++;
+    return placeholder;
+  });
+  
+  // Step 2: Strip all remaining HTML tags
+  text = text.replace(/<[^>]+>/g, '');
+  
+  // Step 3: Collapse whitespace in non-code content
+  // Replace multiple spaces with single space (but not around our placeholders)
+  text = text.replace(/ {2,}/g, ' ');
+  // Replace multiple newlines with single newline
+  text = text.replace(/\n{3,}/g, '\n\n');
+  
+  // Step 4: Decode HTML entities AFTER whitespace collapse
   text = decodeHtmlEntities(text);
   
-  // Normalize line endings to LF
+  // Step 5: Normalize line endings to LF
   text = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
   
-  // Trim leading and trailing whitespace
+  // Step 6: Trim leading and trailing whitespace (before restoring code blocks)
   text = text.trim();
+  
+  // Step 7: Restore code blocks with preserved whitespace
+  for (let i = 0; i < codeBlocks.length; i++) {
+    const placeholder = `__CODEBLOCK${i}__`;
+    // Decode entities in code block content but preserve exact whitespace
+    const codeBlock = codeBlocks[i];
+    if (codeBlock !== undefined) {
+      const decodedCodeBlock = decodeHtmlEntities(codeBlock);
+      text = text.replace(placeholder, decodedCodeBlock);
+    }
+  }
   
   return text;
 }
@@ -364,6 +449,8 @@ function decodeHtmlEntities(text: string): string {
 
 /**
  * Split documentation into chunks if it exceeds 50,000 characters
+ * - Guarantee minimum chunk size of 25,000 characters (MAX_CHUNK_SIZE / 2)
+ * - Guarantee minimum forward progress of 49,500 characters per iteration
  * - Preserve complete sentences
  * - Preserve complete code blocks
  * - Add 500 characters of overlap
@@ -371,6 +458,8 @@ function decodeHtmlEntities(text: string): string {
 function chunk(content: string): DocumentChunk[] {
   const MAX_CHUNK_SIZE = 50000;
   const OVERLAP_SIZE = 500;
+  const MIN_CHUNK_SIZE = MAX_CHUNK_SIZE / 2; // 25,000 characters
+  const MIN_ADVANCEMENT = MAX_CHUNK_SIZE - OVERLAP_SIZE; // 49,500 characters
   
   if (content.length <= MAX_CHUNK_SIZE) {
     return [{
@@ -389,6 +478,12 @@ function chunk(content: string): DocumentChunk[] {
     // If not at the end, find a good break point
     if (chunkEnd < content.length) {
       chunkEnd = findChunkBoundary(content, position, chunkEnd);
+      
+      // Enforce minimum chunk size: if chunkEnd is too close to position,
+      // force it to at least MIN_CHUNK_SIZE
+      if (chunkEnd - position < MIN_CHUNK_SIZE) {
+        chunkEnd = Math.min(position + MAX_CHUNK_SIZE, content.length);
+      }
     }
     
     chunks.push({
@@ -398,7 +493,14 @@ function chunk(content: string): DocumentChunk[] {
     });
     
     // Move to next chunk with overlap
-    position = Math.max(position + 1, chunkEnd - OVERLAP_SIZE);
+    // Enforce minimum advancement to guarantee forward progress
+    const nextPosition = chunkEnd - OVERLAP_SIZE;
+    if (nextPosition <= position) {
+      // Guard against stall: force advancement
+      position = position + MIN_ADVANCEMENT;
+    } else {
+      position = nextPosition;
+    }
   }
   
   return chunks;
@@ -406,8 +508,13 @@ function chunk(content: string): DocumentChunk[] {
 
 /**
  * Find a good chunk boundary that preserves sentences and code blocks
+ * Never returns a position less than start + MAX_CHUNK_SIZE / 2 (25,000 chars)
+ * to guarantee minimum forward progress
  */
 function findChunkBoundary(content: string, start: number, idealEnd: number): number {
+  const MAX_CHUNK_SIZE = 50000;
+  const MIN_BOUNDARY = start + (MAX_CHUNK_SIZE / 2); // 25,000 chars minimum
+  
   // Check if we're inside a code block
   const beforeIdealEnd = content.slice(start, idealEnd);
   
@@ -427,7 +534,11 @@ function findChunkBoundary(content: string, start: number, idealEnd: number): nu
     const afterIdealEnd = content.slice(idealEnd);
     const closingFence = afterIdealEnd.indexOf('```');
     if (closingFence !== -1) {
-      return idealEnd + closingFence + 3; // Include the closing ```
+      const boundary = idealEnd + closingFence + 3; // Include the closing ```
+      // Only use this boundary if it meets minimum requirement
+      if (boundary >= MIN_BOUNDARY) {
+        return boundary;
+      }
     }
   }
   
@@ -436,7 +547,11 @@ function findChunkBoundary(content: string, start: number, idealEnd: number): nu
     const afterIdealEnd = content.slice(idealEnd);
     const closingTag = afterIdealEnd.search(/<\/code>/i);
     if (closingTag !== -1) {
-      return idealEnd + closingTag + 7; // Include </code>
+      const boundary = idealEnd + closingTag + 7; // Include </code>
+      // Only use this boundary if it meets minimum requirement
+      if (boundary >= MIN_BOUNDARY) {
+        return boundary;
+      }
     }
   }
   
@@ -458,17 +573,24 @@ function findChunkBoundary(content: string, start: number, idealEnd: number): nu
   const lastSentenceEnd = Math.max(...sentenceEndings);
   
   if (lastSentenceEnd !== -1) {
-    // Move past the punctuation and space/newline
-    return searchStart + lastSentenceEnd + 2;
+    const boundary = searchStart + lastSentenceEnd + 2; // Move past punctuation and space/newline
+    // Only use this boundary if it meets minimum requirement
+    if (boundary >= MIN_BOUNDARY) {
+      return boundary;
+    }
   }
   
   // No sentence boundary found, look for paragraph break
   const lastParagraph = searchText.lastIndexOf('\n\n');
   if (lastParagraph !== -1) {
-    return searchStart + lastParagraph + 2;
+    const boundary = searchStart + lastParagraph + 2;
+    // Only use this boundary if it meets minimum requirement
+    if (boundary >= MIN_BOUNDARY) {
+      return boundary;
+    }
   }
   
-  // No good boundary found, use idealEnd
+  // No good boundary found that meets minimum, return idealEnd to guarantee progress
   return idealEnd;
 }
 

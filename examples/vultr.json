@@ -1,8 +1,8 @@
 {
   "vendor": "vultr",
   "documentation": {
-    "type": "url",
-    "url": "https://www.vultr.com/api/"
+    "type": "file",
+    "path": "./vultr-api-docs.html"
   },
   "include": [
     {

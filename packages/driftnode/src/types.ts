@@ -485,6 +485,14 @@ export interface GeneratorConfig {
      */
     operations?: string[];
   }[];
+
+
+  /**
+   * User-Agent header for remote fetches.
+   * If omitted, defaults to "driftnode/0.1.0 (+https://github.com/iamrobertmoore/driftnode)".
+   * Vendor documentation sites commonly reject requests with no User-Agent.
+   */
+  userAgent?: string;
 }
 
 /**

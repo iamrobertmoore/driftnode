@@ -14,7 +14,8 @@ export type GeneratorError =
   // Precedence: transport > HTTP status > payload
   | { stage: 'ingest'; type: 'network_error'; url: string; message: string }
   | { stage: 'ingest'; type: 'timeout'; url: string; timeout_seconds: number }
-  | { stage: 'ingest'; type: 'auth_denied'; url: string; status_code: 401 | 403 }
+  | { stage: 'ingest'; type: 'auth_denied'; url: string; status_code: 401 }
+  | { stage: 'ingest'; type: 'bot_protection'; url: string; status_code: 403 }
   | { stage: 'ingest'; type: 'not_found'; url: string }
   | { stage: 'ingest'; type: 'http_error'; url: string; status_code: number }
   | { stage: 'ingest'; type: 'unsupported_content_type'; url: string; content_type: string }
@@ -117,9 +118,24 @@ The server did not respond within the timeout period. Try again later or check i
       return `Error: Authentication required
 
   URL: ${error.url}
-  Status: ${error.status_code}
+  Status: 401 Unauthorized
 
-The documentation URL requires authentication. Ensure the documentation is publicly accessible.`;
+The documentation URL requires credentials. Ensure the documentation is publicly accessible.`;
+
+    case 'bot_protection':
+      return `Error: Server refused the request
+
+  URL: ${error.url}
+  Status: 403 Forbidden
+
+A 403 on a public documentation page is usually bot protection rather than a
+genuine permissions problem, and the most common trigger is an unfamiliar or
+missing User-Agent.
+
+Two things to try:
+  - Set "userAgent" in your generator config to identify your tool
+  - Save the page from a browser and use a file source instead:
+      "documentation": { "type": "file", "path": "./docs/vendor.html" }`;
 
     case 'not_found':
       return `Error: Documentation not found

@@ -9,6 +9,29 @@ The configuration used to generate the published
 driftnode generate examples/vultr.json
 ```
 
+### Why a local snapshot rather than a live URL
+
+driftnode can fetch documentation over HTTP, and does so for vendors that allow it. This
+example deliberately uses a committed snapshot, `vultr-api-docs.html`, for three reasons.
+
+**Reproducibility.** Regenerating from a fixed input produces byte-identical output, so a
+diff between regenerations shows only what actually changed in the generator. A live URL
+makes every regeneration a moving target.
+
+**Independence.** Anyone can clone this repository and regenerate the node with no network
+access and no dependency on a third party's uptime or edge configuration.
+
+**Vultr blocks automated readers.** `https://www.vultr.com/api/` returns 403 to requests
+carrying driftnode's User-Agent. driftnode identifies itself honestly rather than
+impersonating a browser, so a vendor that wants to refuse automated documentation readers
+succeeds in doing so. Working around that would mean shipping a tool that lies about what
+it is.
+
+The snapshot is unmodified page source, saved from a browser.
+
+**Relative paths in a config file resolve against the config file's own directory**, not
+the working directory, so this config can be run from anywhere in the repository.
+
 ### Why these four resources
 
 The resource selection is deliberate, and the reasoning generalises to any vendor.

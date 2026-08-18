@@ -29,6 +29,7 @@ export type GeneratorError =
   
   // Extract stage errors (Requirements 5, 10)
   | { stage: 'extract'; type: 'kiro_not_found' }
+  | { stage: 'extract'; type: 'kiro_not_authenticated' }
   | { stage: 'extract'; type: 'kiro_timeout'; timeout_seconds: number }
   | { stage: 'extract'; type: 'kiro_failed'; exit_code: number; stderr: string }
   | { stage: 'extract'; type: 'ir_file_missing'; chunk_index: number; expected_path: string; stderr: string }
@@ -191,6 +192,15 @@ The driftnode generator requires kiro-cli to be installed and available in PATH.
 
 Install Kiro and ensure an active session is running.`;
 
+
+    case 'kiro_not_authenticated':
+      return `Error: kiro-cli not authenticated
+
+You must be signed in to use kiro-cli for extraction.
+
+Run: kiro-cli login
+
+Then try again.`;
     case 'kiro_timeout':
       return `Error: Extraction timed out
 

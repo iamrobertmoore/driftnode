@@ -84,10 +84,20 @@ export async function loadConfig(configPath: string): Promise<GeneratorConfig> {
     include = validateInclude(config.include);
   }
 
+  if (config.userAgent !== undefined && typeof config.userAgent !== 'string') {
+    throw new Error(
+      `Configuration field "userAgent" must be a string.\n` +
+      `Example: "mytool/1.0 (+https://example.com/mytool)"`
+    );
+  }
+
   return {
     vendor: config.vendor as string,
     documentation,
     include,
+    ...(config.userAgent !== undefined
+      ? { userAgent: config.userAgent as string }
+      : {}),
   };
 }
 
@@ -156,7 +166,14 @@ function validateDocumentSource(
       );
     }
 
-    return { type: 'file', path: doc.path };
+    // Return the resolved absolute path, not the original relative string.
+    //
+    // Relative paths in a config file are resolved against the config file's
+    // own directory, so the config is portable and can be run from anywhere.
+    // Returning the unresolved string here would leave every downstream stage
+    // to resolve it again against the working directory, which is a different
+    // base and silently produces "file not found" after validation passed.
+    return { type: 'file', path: filePath };
   }
 
   throw new Error(

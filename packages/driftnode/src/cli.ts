@@ -62,7 +62,7 @@ async function main(): Promise<void> {
       // Stage 1: Ingest
       console.log('Stage 1: Ingest');
       console.log('  Fetching or reading documentation...');
-      const chunks = await ingest(config.documentation);
+      const chunks = await ingest(config.documentation, config);
       console.log(`  ✓ Documentation ingested: ${chunks.length} chunk(s)\n`);
 
       // Stage 2: Extract
