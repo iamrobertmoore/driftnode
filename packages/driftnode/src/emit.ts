@@ -1021,16 +1021,34 @@ async function emitPackageJson(
     version: '0.1.0',
     description: `n8n community node for ${vendorName} API`,
     keywords: ['n8n-community-node-package', vendorKebab],
-    license: 'MIT',
-    homepage: ir.source.url || ir.source.path,
-    repository: {
-      type: 'git',
-      url: '',
-    },
+    license: config.packageMeta?.license ?? 'MIT',
+    ...(config.packageMeta?.author
+      ? { author: config.packageMeta.author }
+      : {}),
+    // Only use the documentation source as a homepage when it is a URL.
+    // ir.source.path is an absolute path on the generating machine and must
+    // never be published.
+    homepage:
+      config.packageMeta?.homepage ?? ir.source.url ?? undefined,
+    ...(config.packageMeta?.repository
+      ? {
+          repository: {
+            type: 'git',
+            url: config.packageMeta.repository,
+          },
+        }
+      : {}),
+    // npm publishes these paths only. contract/ is included deliberately:
+    // the conformance test reads ir.json at runtime, so it must ship.
+    files: ['dist', 'contract', 'README.md'],
+    // No "main". n8n loads nodes and credentials through the "n8n" block
+    // below, not through Node's entry point resolution, and pointing main at
+    // a file the generator does not emit would be a broken reference.
     scripts: {
       build: 'tsc',
       test: 'vitest run',
       typecheck: 'tsc --noEmit',
+      conformance: 'vitest run test/conformance.test.ts',
     },
     n8n: {
       n8nNodesApiVersion: 1,
@@ -1371,7 +1389,10 @@ async function emitConformanceTest(
   content += '  beforeAll(() => {\n';
   content += '    if (!hasCredentials) {\n';
   content += '      console.log(\'Skipping conformance tests: no credentials provided\');\n';
-  content += '      console.log(`Set ${' + envVarName + '} environment variable to run these tests`);\n';
+  // Note the quotes: this is the *name* of the environment variable as a
+  // string. Interpolating the bare identifier would reference an undefined
+  // variable and throw a ReferenceError.
+  content += '      console.log(\'Set ' + envVarName + ' environment variable to run these tests\');\n';
   content += '    }\n';
   content += '  });\n';
   content += testCases;

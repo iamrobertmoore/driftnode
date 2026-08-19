@@ -8,6 +8,12 @@
     "type": "bearer_token",
     "header_name": "Authorization"
   },
+  "packageMeta": {
+    "author": "Robert Moore",
+    "repository": "git+https://github.com/iamrobertmoore/driftnode.git",
+    "homepage": "https://www.vultr.com/api/",
+    "license": "MIT"
+  },
   "include": [
     {
       "resource": "regions",

@@ -3,7 +3,7 @@
   "source": {
     "path": "/Users/robertmoore/projects/Hackathons/ready-spec-ship/repo/examples/vultr-api-docs.html",
     "content_hash": "33b9eb4b67207d5716178a0201d82334e4f629d3cbaa5cf51d6b71588b86ad53",
-    "extracted_at": "2026-08-19T15:32:29.611Z"
+    "extracted_at": "2026-08-19T15:41:39.513Z"
   },
   "base_url": "https://api.vultr.com/v2",
   "auth": {

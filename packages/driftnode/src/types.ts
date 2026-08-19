@@ -537,6 +537,22 @@ export interface GeneratorConfig {
    * Use this to resolve genuinely ambiguous documentation where the auth scheme is unclear.
    */
   auth?: AuthenticationScheme;
+
+  /**
+   * Publishing metadata for the generated package.
+   *
+   * These end up in the generated package.json. The repository URL in
+   * particular is required for npm provenance via OIDC trusted publishing,
+   * and homepage must never fall back to a local documentation path, which
+   * would leak a filesystem path from the generating machine.
+   */
+  packageMeta?: {
+    author?: string;
+    /** Git URL, for example "git+https://github.com/user/repo.git" */
+    repository?: string;
+    homepage?: string;
+    license?: string;
+  };
 }
 
 /**

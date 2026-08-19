@@ -7,15 +7,22 @@
     "vultr"
   ],
   "license": "MIT",
-  "homepage": "/Users/robertmoore/projects/Hackathons/ready-spec-ship/repo/examples/vultr-api-docs.html",
+  "author": "Robert Moore",
+  "homepage": "https://www.vultr.com/api/",
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "git+https://github.com/iamrobertmoore/driftnode.git"
   },
+  "files": [
+    "dist",
+    "contract",
+    "README.md"
+  ],
   "scripts": {
     "build": "tsc",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "conformance": "vitest run test/conformance.test.ts"
   },
   "n8n": {
     "n8nNodesApiVersion": 1,

@@ -94,7 +94,7 @@ describe('Conformance Test', () => {
   beforeAll(() => {
     if (!hasCredentials) {
       console.log('Skipping conformance tests: no credentials provided');
-      console.log(`Set ${VULTR_ACCESS_TOKEN} environment variable to run these tests`);
+      console.log('Set VULTR_ACCESS_TOKEN environment variable to run these tests');
     }
   });
 

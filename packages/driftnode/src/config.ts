@@ -157,10 +157,23 @@ export async function loadConfig(configPath: string): Promise<GeneratorConfig> {
     authOverride = validateAuthScheme(config.auth);
   }
 
+  if (
+    config.packageMeta !== undefined &&
+    (typeof config.packageMeta !== 'object' || config.packageMeta === null)
+  ) {
+    throw new Error(
+      `Configuration field "packageMeta" must be an object.\n` +
+      `Example: { "author": "Your Name", "repository": "git+https://github.com/you/repo.git" }`
+    );
+  }
+
   return {
     vendor: config.vendor as string,
     documentation,
     include,
+    ...(config.packageMeta !== undefined
+      ? { packageMeta: config.packageMeta as GeneratorConfig['packageMeta'] }
+      : {}),
     ...(config.userAgent !== undefined
       ? { userAgent: config.userAgent as string }
       : {}),

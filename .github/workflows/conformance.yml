@@ -52,7 +52,10 @@ jobs:
         id: check
         if: steps.gate.outputs.ready == 'true'
         env:
-          VULTR_API_KEY: ${{ secrets.VULTR_API_KEY }}
+          # Name matches what the generated test reads. driftnode derives it
+          # from the auth scheme: bearer_token gives <VENDOR>_ACCESS_TOKEN,
+          # api_key gives <VENDOR>_API_KEY. Vultr uses bearer.
+          VULTR_ACCESS_TOKEN: ${{ secrets.VULTR_ACCESS_TOKEN }}
         run: npm run conformance
 
       - name: Open an issue on drift
