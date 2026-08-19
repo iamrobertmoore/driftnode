@@ -50,7 +50,6 @@ describe('Emit Stage', () => {
         source: {
           url: 'https://example.com/docs',
           content_hash: 'abc123',
-          extracted_at: '2024-01-01T00:00:00Z',
         },
         base_url: 'https://api.example.com',
         auth: {
@@ -94,7 +93,6 @@ describe('Emit Stage', () => {
         source: {
           url: 'https://example.com/docs',
           content_hash: 'abc123',
-          extracted_at: '2024-01-01T00:00:00Z',
         },
         base_url: 'https://api.example.com',
         auth: {
@@ -126,7 +124,6 @@ describe('Emit Stage', () => {
         source: {
           url: 'https://example.com/docs',
           content_hash: 'abc123',
-          extracted_at: '2024-01-01T00:00:00Z',
         },
         base_url: 'https://api.example.com',
         auth: {
@@ -158,7 +155,6 @@ describe('Emit Stage', () => {
         source: {
           url: 'https://example.com/docs',
           content_hash: 'abc123',
-          extracted_at: '2024-01-01T00:00:00Z',
         },
         base_url: 'https://api.example.com',
         auth: {
@@ -193,7 +189,6 @@ describe('Emit Stage', () => {
         source: {
           url: 'https://example.com/docs',
           content_hash: 'abc123',
-          extracted_at: '2024-01-01T00:00:00Z',
         },
         base_url: 'https://api.example.com',
         auth: {
@@ -228,7 +223,6 @@ describe('Emit Stage', () => {
         source: {
           url: 'https://example.com/docs',
           content_hash: 'abc123',
-          extracted_at: '2024-01-01T00:00:00Z',
         },
         base_url: 'https://api.example.com',
         auth: {
@@ -344,7 +338,6 @@ describe('Emit Stage', () => {
         source: {
           url: 'https://example.com/docs',
           content_hash: 'abc123',
-          extracted_at: '2024-01-01T00:00:00Z',
         },
         base_url: 'https://api.example.com',
         auth: {
@@ -418,7 +411,6 @@ describe('Emit Stage', () => {
         source: {
           url: 'https://example.com/docs',
           content_hash: 'abc123',
-          extracted_at: '2024-01-01T00:00:00Z',
         },
         base_url: 'https://api.example.com',
         auth: {
@@ -678,7 +670,6 @@ describe('Emit Stage', () => {
         source: {
           url: 'https://example.com/docs',
           content_hash: 'abc123',
-          extracted_at: '2024-01-01T00:00:00Z',
         },
         base_url: 'https://api.example.com',
         auth: {
@@ -814,7 +805,6 @@ describe('Emit Stage', () => {
         source: {
           url: 'https://example.com/docs',
           content_hash: 'abc123',
-          extracted_at: '2024-01-01T00:00:00Z',
         },
         base_url: 'https://api.example.com/v1',
         auth: {
@@ -1210,7 +1200,6 @@ describe('Emit Stage', () => {
         source: {
           url: 'https://example.com/docs',
           content_hash: 'abc123',
-          extracted_at: '2024-01-01T00:00:00Z',
         },
         base_url: 'https://api.example.com/v1',
         auth: {
@@ -1427,7 +1416,6 @@ describe('Emit Stage', () => {
         source: {
           url: 'https://docs.vendor.com/api',
           content_hash: 'abc123',
-          extracted_at: '2024-01-01T00:00:00Z',
         },
         base_url: 'https://api.vendor.com',
         auth: {
@@ -1476,7 +1464,6 @@ describe('Emit Stage', () => {
         source: {
           url: 'https://example.com/docs',
           content_hash: 'abc123def456',
-          extracted_at: '2024-01-15T12:00:00Z',
         },
         base_url: 'https://api.example.com/v2',
         auth: {
@@ -1523,7 +1510,6 @@ describe('Emit Stage', () => {
       expect(parsedContract.source).toBeDefined();
       expect(parsedContract.source.url).toBe('https://example.com/docs');
       expect(parsedContract.source.content_hash).toBe('abc123def456');
-      expect(parsedContract.source.extracted_at).toBe('2024-01-15T12:00:00Z');
       expect(parsedContract.base_url).toBe('https://api.example.com/v2');
       expect(parsedContract.auth).toBeDefined();
       expect(parsedContract.auth.type).toBe('api_key');
@@ -1541,7 +1527,6 @@ describe('Emit Stage', () => {
         source: {
           path: '/local/docs/api.html',
           content_hash: 'xyz789',
-          extracted_at: '2024-01-20T10:30:00Z',
         },
         base_url: 'https://api.local.com',
         auth: {
@@ -1574,7 +1559,6 @@ describe('Emit Stage', () => {
         source: {
           url: 'https://example.com/docs',
           content_hash: 'hash123',
-          extracted_at: '2024-01-01T00:00:00Z',
         },
         base_url: 'https://api.example.com',
         auth: {
@@ -1712,7 +1696,6 @@ function createSampleIR(overrides: { parameters?: Parameter[] } = {}): Intermedi
     source: {
       url: 'https://example.com/docs',
       content_hash: 'abc123',
-      extracted_at: '2024-01-01T00:00:00Z',
     },
     base_url: 'https://api.example.com',
     auth: {

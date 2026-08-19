@@ -61,11 +61,6 @@ export interface IntermediateRepresentation {
      * Used by conformance test to detect documentation changes.
      */
     content_hash: string;
-    
-    /**
-     * Timestamp when the IR was extracted (ISO 8601)
-     */
-    extracted_at: string;
   };
 
   /**

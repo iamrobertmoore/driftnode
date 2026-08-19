@@ -28,7 +28,6 @@ describe('Conformance Test Emission', () => {
       source: {
         url: 'https://api.example.com/docs',
         content_hash: 'abc123',
-        extracted_at: '2024-01-01T00:00:00Z',
       },
       base_url: 'https://api.example.com/v1',
       auth: {
@@ -125,7 +124,6 @@ describe('Conformance Test Emission', () => {
       source: {
         url: 'https://api.example.com/docs',
         content_hash: 'abc123',
-        extracted_at: '2024-01-01T00:00:00Z',
       },
       base_url: 'https://api.example.com/v1',
       auth: {
@@ -224,7 +222,6 @@ describe('Conformance Test Emission', () => {
       source: {
         url: 'https://api.example.com/docs',
         content_hash: 'abc123',
-        extracted_at: '2024-01-01T00:00:00Z',
       },
       base_url: 'https://api.example.com/v1',
       auth: {
@@ -290,7 +287,6 @@ describe('Conformance Test Emission', () => {
       source: {
         url: 'https://api.example.com/docs',
         content_hash: 'abc123',
-        extracted_at: '2024-01-01T00:00:00Z',
       },
       base_url: 'https://api.example.com/v1',
       auth: {
@@ -347,7 +343,6 @@ describe('Conformance Test Emission', () => {
       source: {
         url: 'https://api.example.com/docs',
         content_hash: 'abc123',
-        extracted_at: '2024-01-01T00:00:00Z',
       },
       base_url: 'https://api.example.com/v1',
       auth: {

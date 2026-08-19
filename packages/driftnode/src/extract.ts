@@ -182,7 +182,13 @@ export async function extract(
             }
         ),
         content_hash: contentHash,
-        extracted_at: new Date().toISOString(),
+        // Deliberately no timestamp.
+        //
+        // ir.json is a committed, published artefact and the project claims
+        // that regenerating from the same documentation produces byte-identical
+        // output. A wall-clock time breaks that on every run, for no benefit:
+        // content_hash already identifies the input, and git history already
+        // records when the file was written.
       },
       base_url: mergedIR.base_url,
       auth: finalAuth,
@@ -623,17 +629,58 @@ ${partialIRSchema}
    - default_value: Default value if documented
    - constraints: Any validation rules (enum, min/max length, pattern)
 
-5. For response shapes:
-   - If the documentation clearly describes the response structure, extract it fully
-   - If the response structure is ambiguous or undocumented, set \`undocumented: true\`
-   - Include property types and whether they are required
+   Parameters appear in the documentation under several headings, and you must
+   read all of them. Look for:
+   - "path Parameters" -> location "path"
+   - "query Parameters" -> location "query"
+   - "header Parameters" -> location "header"
+   - "Request Body schema" -> location "body"
+
+   The request body section is the one most often missed. It typically reads
+   like this, with the type and the word "required" run together against the
+   field name:
+
+     Request Body schema: application/json
+     namerequiredstring The user-supplied name for this SSH Key.
+     ssh_keyrequiredstring The SSH Key.
+
+   That describes two body parameters, "name" and "ssh_key", both required,
+   both strings. Whitespace between the field name, the word "required" and
+   the type is often missing. Parse it anyway.
+
+   A POST, PUT or PATCH operation with no body parameters is almost always an
+   extraction miss rather than a real API. Before concluding an operation has
+   no body, check for a "Request samples" payload, which shows the same fields
+   as a concrete JSON object.
+
+5. For response shapes, use the example payloads. The documentation includes a
+   "Response samples" block containing real JSON for most operations, like:
+
+     Response samples 201
+     {"ssh_key": {"id": "cb676a46", "date_created": "2020-10-10T01:56:20+00:00",
+      "name": "Example SSH Key", "ssh_key": "ssh-rsa AA..."}}
+
+   Derive response_shape from that JSON directly:
+   - The top level is an object, so type is "object"
+   - Each key becomes a property. Infer its type from the example value:
+     a quoted value is "string", a bare number is "number", true or false is
+     "boolean", square brackets are "array", braces are "object"
+   - Mark a property required only if the documentation says so. If it appears
+     in the example but is not stated as required, set required to false
+   - Set undocumented to false whenever you derived the shape from an example
+
+   Also copy the example itself into the operation's examples array, with its
+   status code, so it survives even where the shape is ambiguous.
+
+   Only set \`undocumented: true\` when there is genuinely no response sample
+   and no prose description of the response. Do not use it as a default.
 
 6. Extract ONLY what is explicitly documented. Do NOT:
    - Infer or assume values
    - Add default values not in the documentation
    - Guess at parameter types
    - Invent response structures
-   - Include source metadata (content_hash, extracted_at)
+   - Do not include source metadata. The generator owns it.
    - Include schema_version
 
 7. Write the extracted PartialIR as valid JSON to this file path:

@@ -15,7 +15,6 @@ describe('README Emission (Task 11.4)', () => {
         source: {
           url: 'https://example.com/api/docs',
           content_hash: 'abc123',
-          extracted_at: '2024-01-15T12:00:00Z',
         },
         base_url: 'https://api.example.com/v1',
         auth: {
@@ -88,7 +87,6 @@ describe('README Emission (Task 11.4)', () => {
         source: {
           path: '/path/to/docs.html',
           content_hash: 'abc123',
-          extracted_at: '2024-01-15T12:00:00Z',
         },
         base_url: 'https://api.example.com/v1',
         auth: {

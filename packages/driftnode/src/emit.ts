@@ -1259,7 +1259,8 @@ async function emitReadme(
 
 n8n community node for the ${vendorName} API.
 
-This node was generated from ${docSource} on ${new Date(ir.source.extracted_at).toISOString().split('T')[0]}.
+This node was generated from ${docSource}, content hash \`${ir.source.content_hash.slice(0, 12)}\`.
+Regenerating from the same documentation produces byte-identical output.
 
 ## Installation
 

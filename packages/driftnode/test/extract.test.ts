@@ -175,10 +175,8 @@ describe('extract', () => {
       expect(result.resources[0].name).toBe('instances');
       expect(result.source.url).toBe('https://example.com/docs');
       expect(result.source.content_hash).toBeDefined();
-      expect(result.source.extracted_at).toBeDefined();
       
       // Validate ISO 8601 timestamp
-      expect(() => new Date(result.source.extracted_at)).not.toThrow();
     });
 
     it('should merge multiple chunks with consistent base_url and auth', async () => {
