@@ -25,10 +25,13 @@ export async function emit(
   await createDirectoryStructure(ir, config, tempDir);
 
   // Emit credentials file (Task 9.2)
-  await emitCredentials(ir, config.vendor, tempDir);
+  await emitCredentials(ir, config, tempDir);
 
   // Emit node class (Task 9.3)
   await emitNode(ir, config.vendor, tempDir);
+
+  // Node icon
+  await emitIcon(config, tempDir);
 
   // Emit contract file (Task 11.1)
   await emitContract(ir, tempDir);
@@ -89,6 +92,42 @@ async function createDirectoryStructure(
  * @param vendor - Vendor name from config (kebab-case, e.g., "vultr")
  * @returns Capitalized vendor name (e.g., "Vultr")
  */
+/**
+ * Shorten an operation label by removing the resource name it repeats.
+ *
+ * n8n composes the action label from the resource and the operation, so an
+ * operation called "List Regions" inside a resource called "Regions" renders
+ * as "Regions List Regions". Documentation almost always names operations in
+ * full, so strip the resource name and leave the verb: "List".
+ *
+ * Falls back to the original label if stripping would leave nothing, which
+ * happens when the operation name is only the resource name.
+ */
+function shortOperationLabel(
+  operationLabel: string,
+  resourceLabel: string
+): string {
+  const singular = resourceLabel.replace(/s$/i, '');
+  const candidates = [resourceLabel, singular]
+    .filter((c) => c.length > 0)
+    .sort((a, b) => b.length - a.length);
+
+  for (const candidate of candidates) {
+    const pattern = new RegExp(
+      `\\s*${candidate.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*$`,
+      'i'
+    );
+    if (pattern.test(operationLabel)) {
+      const stripped = operationLabel.replace(pattern, '').trim();
+      if (stripped.length > 0) {
+        return stripped;
+      }
+    }
+  }
+
+  return operationLabel;
+}
+
 function capitalizeVendorName(vendor: string): string {
   // Handle multi-word kebab-case names (e.g., "digital-ocean" → "DigitalOcean")
   return vendor
@@ -104,15 +143,70 @@ function capitalizeVendorName(vendor: string): string {
  * @param vendor - Vendor name from config (kebab-case)
  * @param tempDir - Temporary directory path
  */
-async function emitCredentials(
-  ir: IntermediateRepresentation,
-  vendor: string,
+/**
+ * Emit the node icon.
+ *
+ * n8n renders `icon: 'file:<vendor>.svg'` from alongside the node file, and a
+ * missing file leaves a blank space in the node palette.
+ *
+ * The default is a generated monogram rather than the vendor's real logo.
+ * Bundling a vendor's trademark into an unofficial community node is a
+ * question no generator should answer on the user's behalf, so anyone wanting
+ * the real mark can point `packageMeta.iconPath` at a file they have the right
+ * to redistribute.
+ */
+async function emitIcon(
+  config: GeneratorConfig,
   tempDir: string
 ): Promise<void> {
-  const vendorName = capitalizeVendorName(vendor);
+  const vendorName = capitalizeVendorName(config.vendor);
+  const destination = path.join(
+    tempDir,
+    'nodes',
+    vendorName,
+    `${config.vendor}.svg`
+  );
+
+  const supplied = config.packageMeta?.iconPath;
+  if (supplied) {
+    await fs.promises.copyFile(path.resolve(supplied), destination);
+    return;
+  }
+
+  const initials = config.vendor
+    .split(/[-_\s]+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]!.toUpperCase())
+    .join('');
+
+  // Hue derived from the vendor name so each generated node is visually
+  // distinct, and identical input always produces an identical icon.
+  let hash = 0;
+  for (const char of config.vendor) {
+    hash = (hash * 31 + char.charCodeAt(0)) % 360;
+  }
+
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="${escapeString(vendorName)}">
+  <rect width="64" height="64" rx="12" fill="hsl(${hash}, 62%, 46%)"/>
+  <text x="32" y="33" text-anchor="middle" dominant-baseline="central"
+        font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif"
+        font-size="${initials.length > 1 ? 24 : 32}" font-weight="600" fill="#ffffff">${initials}</text>
+</svg>
+`;
+
+  await fs.promises.writeFile(destination, svg, 'utf-8');
+}
+
+async function emitCredentials(
+  ir: IntermediateRepresentation,
+  config: GeneratorConfig,
+  tempDir: string
+): Promise<void> {
+  const vendorName = capitalizeVendorName(config.vendor);
   const credentialsPath = path.join(tempDir, 'credentials', `${vendorName}Api.credentials.ts`);
 
-  const content = generateCredentialsContent(ir, vendorName);
+  const content = generateCredentialsContent(ir, vendorName, config);
 
   await fs.promises.writeFile(credentialsPath, content, 'utf-8');
 }
@@ -126,7 +220,8 @@ async function emitCredentials(
  */
 function generateCredentialsContent(
   ir: IntermediateRepresentation,
-  vendorName: string
+  vendorName: string,
+  config: GeneratorConfig
 ): string {
   const className = `${vendorName}Api`;
   // Convert back to kebab-case for the credential name
@@ -135,7 +230,24 @@ function generateCredentialsContent(
   );
   
   // Generate the properties array based on auth type
-  const properties = generateCredentialProperties(ir.auth, ir.source.url || ir.source.path);
+  // Only ever use a URL here. ir.source.path is an absolute path on the
+  // machine that ran the generator, and it would otherwise be published to
+  // npm inside the credential description.
+  const docUrl = config.packageMeta?.homepage ?? ir.source.url;
+
+  const properties = generateCredentialProperties(ir.auth, docUrl);
+
+  // The credential test needs a real endpoint. The API root usually 404s, so
+  // pick the first GET operation that takes no path parameters: it is by
+  // definition safe, needs no user input, and exists.
+  const probe = ir.resources
+    .flatMap((r) => r.operations)
+    .find(
+      (op) =>
+        op.http_method === 'GET' &&
+        !op.path.includes('{') &&
+        !op.parameters.some((p) => p.location === 'path')
+    );
 
   return `import {
   IAuthenticateGeneric,
@@ -147,7 +259,7 @@ function generateCredentialsContent(
 export class ${className} implements ICredentialType {
   name = '${vendorKebab}Api';
   displayName = '${vendorName} API';
-  documentationUrl = '${ir.source.url || 'https://example.com/docs'}';
+  documentationUrl = '${docUrl ?? ''}';
   properties: INodeProperties[] = ${properties};
 
   authenticate: IAuthenticateGeneric = {
@@ -160,7 +272,7 @@ ${generateAuthenticateProperties(ir.auth)}
   test: ICredentialTestRequest = {
     request: {
       baseURL: '${ir.base_url}',
-      url: '/',
+      url: '${probe ? probe.path : '/'}',
     },
   };
 }
@@ -377,7 +489,7 @@ function generateNodeContent(
   const operationsByResource = ir.resources.map(resource => ({
     resourceName: resource.name,
     operations: resource.operations.map(op => ({
-      name: op.display_name,
+      name: shortOperationLabel(op.display_name, resource.display_name),
       value: op.name,
       description: op.description,
     })),
@@ -1018,7 +1130,7 @@ async function emitPackageJson(
 
   const packageJson = {
     name: `n8n-nodes-${vendorKebab}`,
-    version: '0.1.0',
+    version: config.packageMeta?.version ?? '0.1.0',
     description: `n8n community node for ${vendorName} API`,
     keywords: ['n8n-community-node-package', vendorKebab],
     license: config.packageMeta?.license ?? 'MIT',
@@ -1045,26 +1157,26 @@ async function emitPackageJson(
     // below, not through Node's entry point resolution, and pointing main at
     // a file the generator does not emit would be a broken reference.
     scripts: {
-      build: 'tsc',
+      // tsc does not copy non-TypeScript files, but n8n resolves the node
+      // icon relative to the compiled node in dist/, so assets have to be
+      // copied across after compilation. Done with node's own fs rather than
+      // a build tool, to keep the generated package dependency-free.
+      build:
+        'tsc && node -e "require(\'fs\').cpSync(\'nodes\',\'dist/nodes\',{recursive:true,filter:s=>!s.endsWith(\'.ts\')})"',
       test: 'vitest run',
       typecheck: 'tsc --noEmit',
       conformance: 'vitest run test/conformance.test.ts',
     },
     n8n: {
       n8nNodesApiVersion: 1,
-      usableAsTool: true,
-      credentials: [
-        {
-          className: `${vendorName}Api`,
-          sourcePath: `dist/credentials/${vendorName}Api.credentials.js`,
-        },
-      ],
-      nodes: [
-        {
-          className: vendorName,
-          sourcePath: `dist/nodes/${vendorName}/${vendorName}.node.js`,
-        },
-      ],
+      // These must be arrays of path strings, not objects. n8n calls
+      // path.join(packageDir, entry) on each item, so an object fails with
+      // 'The "paths[1]" argument must be of type string'. This matches the
+      // format used by n8n's own node starter.
+      //
+      // usableAsTool belongs on the node's description, not here.
+      credentials: [`dist/credentials/${vendorName}Api.credentials.js`],
+      nodes: [`dist/nodes/${vendorName}/${vendorName}.node.js`],
     },
     devDependencies: {
       '@types/node': '^20.10.0',

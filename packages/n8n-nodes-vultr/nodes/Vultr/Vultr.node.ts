@@ -65,7 +65,7 @@ export class Vultr implements INodeType {
       },
       options: [
         {
-          name: 'List Regions',
+          name: 'List',
           value: 'list-regions',
           description: 'List Regions',
         }
@@ -85,7 +85,7 @@ export class Vultr implements INodeType {
       },
       options: [
         {
-          name: 'List Plans',
+          name: 'List',
           value: 'list-plans',
           description: 'List Plans',
         }
@@ -105,27 +105,27 @@ export class Vultr implements INodeType {
       },
       options: [
         {
-          name: 'List SSH Keys',
+          name: 'List',
           value: 'list-ssh-keys',
           description: 'List SSH Keys',
         },
         {
-          name: 'Create SSH key',
+          name: 'Create',
           value: 'create-ssh-key',
           description: 'Create SSH key',
         },
         {
-          name: 'Get SSH Key',
+          name: 'Get',
           value: 'get-ssh-key',
           description: 'Get SSH Key',
         },
         {
-          name: 'Update SSH Key',
+          name: 'Update',
           value: 'update-ssh-key',
           description: 'Update SSH Key',
         },
         {
-          name: 'Delete SSH Key',
+          name: 'Delete',
           value: 'delete-ssh-key',
           description: 'Delete SSH Key',
         }
@@ -145,37 +145,37 @@ export class Vultr implements INodeType {
       },
       options: [
         {
-          name: 'List Instances',
+          name: 'List',
           value: 'list-instances',
           description: 'List Instances',
         },
         {
-          name: 'Create Instance',
+          name: 'Create',
           value: 'create-instance',
           description: 'Create Instance',
         },
         {
-          name: 'Get Instance',
+          name: 'Get',
           value: 'get-instance',
           description: 'Get Instance',
         },
         {
-          name: 'Delete Instance',
+          name: 'Delete',
           value: 'delete-instance',
           description: 'Delete Instance',
         },
         {
-          name: 'Start instance',
+          name: 'Start',
           value: 'start-instance',
           description: 'Start instance',
         },
         {
-          name: 'Reboot Instance',
+          name: 'Reboot',
           value: 'reboot-instance',
           description: 'Reboot Instance',
         },
         {
-          name: 'Halt Instance',
+          name: 'Halt',
           value: 'halt-instance',
           description: 'Halt Instance',
         }

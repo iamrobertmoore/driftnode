@@ -8,7 +8,7 @@ import {
 export class VultrApi implements ICredentialType {
   name = 'vultrApi';
   displayName = 'Vultr API';
-  documentationUrl = 'https://example.com/docs';
+  documentationUrl = 'https://www.vultr.com/api/';
   properties: INodeProperties[] = [
     {
       displayName: 'Access Token',
@@ -19,7 +19,7 @@ export class VultrApi implements ICredentialType {
       },
       default: '',
       required: true,
-      description: 'Bearer token for authentication. See the [documentation](/Users/robertmoore/projects/Hackathons/ready-spec-ship/repo/examples/vultr-api-docs.html) for details.',
+      description: 'Bearer token for authentication. See the [documentation](https://www.vultr.com/api/) for details.',
     },
   ];
 
@@ -35,7 +35,7 @@ export class VultrApi implements ICredentialType {
   test: ICredentialTestRequest = {
     request: {
       baseURL: 'https://api.vultr.com/v2',
-      url: '/',
+      url: '/regions',
     },
   };
 }

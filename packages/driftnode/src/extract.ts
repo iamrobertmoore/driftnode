@@ -169,7 +169,17 @@ export async function extract(
       source: {
         ...(config.documentation.type === 'url' 
           ? { url: config.documentation.url }
-          : { path: path.resolve(config.documentation.path) }
+          : {
+              // Store a path relative to the working directory, not an
+              // absolute one. The IR is committed and published inside the
+              // generated package, so an absolute path would leak the
+              // generating machine's filesystem layout and mean nothing to
+              // anyone else.
+              path: path.relative(
+                process.cwd(),
+                path.resolve(config.documentation.path)
+              ),
+            }
         ),
         content_hash: contentHash,
         extracted_at: new Date().toISOString(),

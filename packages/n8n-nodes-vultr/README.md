@@ -4,7 +4,7 @@
 
 n8n community node for the Vultr API.
 
-This node was generated from local file: `/Users/robertmoore/projects/Hackathons/ready-spec-ship/repo/examples/vultr-api-docs.html` on 2026-08-19.
+This node was generated from local file: `examples/vultr-api-docs.html` on 2026-08-19.
 
 ## Installation
 
@@ -14,7 +14,7 @@ npm install n8n-nodes-vultr
 
 ## Documentation
 
-API documentation: /Users/robertmoore/projects/Hackathons/ready-spec-ship/repo/examples/vultr-api-docs.html
+API documentation: examples/vultr-api-docs.html
 
 This package includes 4 resources and 14 operations.
 

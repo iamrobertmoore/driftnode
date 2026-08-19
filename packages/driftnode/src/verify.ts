@@ -204,15 +204,24 @@ export async function dynamicImport(tempDir: string): Promise<ImportResult> {
       };
     }
 
+    // n8n.nodes is an array of path strings, which is the format n8n itself
+    // requires. Reject anything else here rather than letting n8n discover it
+    // at install time, which is how this was originally missed: the generator
+    // wrote objects and this verifier read them back, so both agreed and the
+    // package still failed to load in a real n8n.
     const nodeEntry = packageJson.n8n.nodes[0];
-    const sourcePath = nodeEntry.sourcePath;
 
-    if (!sourcePath) {
+    if (typeof nodeEntry !== 'string') {
       return {
         success: false,
-        error: 'n8n.nodes[0].sourcePath not found in package.json',
+        error:
+          'n8n.nodes entries must be path strings, not objects. ' +
+          `Received ${typeof nodeEntry}. n8n calls path.join on each entry ` +
+          'and will fail to load the package.',
       };
     }
+
+    const sourcePath = nodeEntry;
 
     // Construct absolute path to compiled node file
     const nodePath = path.join(tempDir, sourcePath);
@@ -239,12 +248,24 @@ export async function dynamicImport(tempDir: string): Promise<ImportResult> {
     const module = require(nodePath);
 
     // Extract the node class (it should be the default or named export)
-    const nodeClass = module.default || module[nodeEntry.className];
+    // Derive the expected class name from the file itself. n8n's convention is
+    // that Foo.node.js exports a class named Foo, which is also how n8n
+    // locates it at load time.
+    const expectedClassName = path.basename(sourcePath, '.js').replace(/\.node$/, '');
+
+    const nodeClass =
+      module[expectedClassName] ??
+      module.default ??
+      // Last resort: the sole exported function, if there is exactly one.
+      Object.values(module).find((v) => typeof v === 'function');
 
     if (!nodeClass) {
       return {
         success: false,
-        error: `Node class not found in module. Expected export: ${nodeEntry.className}`,
+        error:
+          `Node class not found in ${sourcePath}. ` +
+          `Expected an export named "${expectedClassName}". ` +
+          `Found: ${Object.keys(module).join(', ') || '(no exports)'}`,
       };
     }
 

@@ -547,6 +547,13 @@ export interface GeneratorConfig {
    * would leak a filesystem path from the generating machine.
    */
   packageMeta?: {
+    /** Semver for the generated package. Defaults to 0.1.0. */
+    version?: string;
+    /**
+     * Path to an SVG to use as the node icon. Defaults to a generated
+     * monogram, so no vendor trademark is bundled without the user choosing to.
+     */
+    iconPath?: string;
     author?: string;
     /** Git URL, for example "git+https://github.com/user/repo.git" */
     repository?: string;

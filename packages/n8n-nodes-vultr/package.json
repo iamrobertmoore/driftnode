@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-vultr",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "n8n community node for Vultr API",
   "keywords": [
     "n8n-community-node-package",
@@ -19,25 +19,18 @@
     "README.md"
   ],
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && node -e \"require('fs').cpSync('nodes','dist/nodes',{recursive:true,filter:s=>!s.endsWith('.ts')})\"",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "conformance": "vitest run test/conformance.test.ts"
   },
   "n8n": {
     "n8nNodesApiVersion": 1,
-    "usableAsTool": true,
     "credentials": [
-      {
-        "className": "VultrApi",
-        "sourcePath": "dist/credentials/VultrApi.credentials.js"
-      }
+      "dist/credentials/VultrApi.credentials.js"
     ],
     "nodes": [
-      {
-        "className": "Vultr",
-        "sourcePath": "dist/nodes/Vultr/Vultr.node.js"
-      }
+      "dist/nodes/Vultr/Vultr.node.js"
     ]
   },
   "devDependencies": {
