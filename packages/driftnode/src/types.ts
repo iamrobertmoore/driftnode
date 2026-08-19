@@ -530,6 +530,13 @@ export interface GeneratorConfig {
    * If omitted, defaults to 300 seconds (5 minutes).
    */
   extractionTimeoutSeconds?: number;
+
+  /**
+   * Authentication scheme override.
+   * When provided, this value takes precedence over any auth extracted from documentation.
+   * Use this to resolve genuinely ambiguous documentation where the auth scheme is unclear.
+   */
+  auth?: AuthenticationScheme;
 }
 
 /**

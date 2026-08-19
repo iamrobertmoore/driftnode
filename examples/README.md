@@ -32,6 +32,24 @@ The snapshot is unmodified page source, saved from a browser.
 **Relative paths in a config file resolve against the config file's own directory**, not
 the working directory, so this config can be run from anywhere in the repository.
 
+### Why `auth` is pinned in the config
+
+Extraction across 42 chunks disagreed about Vultr's authentication: some chunks reported
+`bearer_token`, others `api_key`. Both readings are defensible, because Vultr's
+documentation says:
+
+```
+-H "Authorization: Bearer ${VULTR_API_KEY}"
+```
+
+The credential is *called* an API key. It is *transmitted* as a bearer token. The IR
+describes how requests are constructed, so `bearer_token` with `header_name: Authorization`
+is the correct representation, and pinning it here removes the ambiguity rather than
+leaving the generator to pick a side.
+
+This is what the `auth` override is for: documentation that is genuinely ambiguous rather
+than wrong.
+
 ### Why these four resources
 
 The resource selection is deliberate, and the reasoning generalises to any vendor.

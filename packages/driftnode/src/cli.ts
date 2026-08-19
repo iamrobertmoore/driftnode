@@ -31,12 +31,25 @@ async function main(): Promise<void> {
   
   if (args.length === 0 || !args[0]) {
     console.error('Error: No configuration file specified\n');
-    console.error('Usage: driftnode <config-file.json>\n');
+    console.error('Usage: driftnode [--no-cache] <config-file.json>\n');
     console.error('Example: driftnode config/vultr.json');
     process.exit(1);
   }
 
-  const configPath = args[0];
+  // Check for --no-cache flag
+  let noCache = false;
+  let configPath = args[0];
+  
+  if (args[0] === '--no-cache') {
+    noCache = true;
+    if (!args[1]) {
+      console.error('Error: No configuration file specified\n');
+      console.error('Usage: driftnode [--no-cache] <config-file.json>\n');
+      console.error('Example: driftnode --no-cache config/vultr.json');
+      process.exit(1);
+    }
+    configPath = args[1];
+  }
 
   try {
     // Load configuration
@@ -68,7 +81,7 @@ async function main(): Promise<void> {
       // Stage 2: Extract
       console.log('Stage 2: Extract');
       console.log('  Invoking kiro-cli to extract IR from documentation...');
-      const ir = await extract(chunks, config, workspaceDir);
+      const ir = await extract(chunks, config, workspaceDir, noCache);
       console.log(`  ✓ IR extracted: ${ir.resources.length} resource(s), ${countOperations(ir)} operation(s)\n`);
 
       // Stage 3: Validate

@@ -11,6 +11,7 @@ import { spawn } from 'child_process';
 import * as crypto from 'crypto';
 import { DocumentChunk, PartialIR, IntermediateRepresentation, GeneratorConfig, AuthenticationScheme, Resource, Operation } from './types.js';
 import { GeneratorError } from './errors.js';
+import { getCacheDirectory, ensureCacheDirectory, computeCacheKey, readFromCache, writeToCache } from './cache.js';
 
 /**
  * Extract intermediate representation from documentation chunks
@@ -18,16 +19,24 @@ import { GeneratorError } from './errors.js';
  * @param chunks - Normalized documentation chunks
  * @param config - Generator configuration
  * @param workspaceDir - Workspace root directory
+ * @param noCache - If true, skip cache lookups and force re-extraction
  * @returns Complete IntermediateRepresentation
  */
 export async function extract(
   chunks: DocumentChunk[],
   config: GeneratorConfig,
-  workspaceDir: string
+  workspaceDir: string,
+  noCache: boolean = false
 ): Promise<IntermediateRepresentation> {
   // Create temporary directory for IR chunk files
   const tempDir = path.join(workspaceDir, `.tmp-${config.vendor}`);
   await fs.promises.mkdir(tempDir, { recursive: true });
+
+  // Set up cache directory
+  const cacheDir = getCacheDirectory();
+  if (!noCache) {
+    await ensureCacheDirectory(cacheDir);
+  }
 
   // Preflight: Check kiro-cli authentication before processing chunks
   await checkKiroAuthentication();
@@ -40,6 +49,10 @@ export async function extract(
     const extractionStartTime = Date.now();
     const concurrency = config.concurrency ?? 4; // Default to 4 concurrent extractions
     const partialIRs: PartialIR[] = new Array(chunks.length);
+    
+    // Track cache hits and misses
+    let reusedCount = 0;
+    let extractedCount = 0;
     
     // Process chunks in batches to limit concurrency
     for (let batchStart = 0; batchStart < chunks.length; batchStart += concurrency) {
@@ -55,19 +68,58 @@ export async function extract(
         process.stdout.write(`  chunk ${chunkIndex + 1}/${chunks.length}...`);
         
         try {
-          const partialIR = await extractChunk(
-            chunk,
-            outputPath,
-            chunkIndex,
-            config.effort,
-            config.extractionTimeoutSeconds
-          );
+          let partialIR: PartialIR;
+          let fromCache = false;
+          
+          // Check cache if enabled
+          if (!noCache) {
+            // Build extraction prompt to compute cache key
+            const extractionPrompt = buildExtractionPrompt(chunk.content, outputPath);
+            const cacheKey = computeCacheKey(chunk.content, extractionPrompt);
+            
+            // Try to read from cache
+            const cachedIR = await readFromCache(cacheDir, cacheKey);
+            
+            if (cachedIR) {
+              partialIR = cachedIR;
+              fromCache = true;
+            } else {
+              // Cache miss: extract and write to cache
+              partialIR = await extractChunk(
+                chunk,
+                outputPath,
+                chunkIndex,
+                config.effort,
+                config.extractionTimeoutSeconds
+              );
+              
+              // Write to cache for next time
+              await writeToCache(cacheDir, cacheKey, partialIR);
+            }
+          } else {
+            // Cache disabled: always extract
+            partialIR = await extractChunk(
+              chunk,
+              outputPath,
+              chunkIndex,
+              config.effort,
+              config.extractionTimeoutSeconds
+            );
+          }
           
           const elapsed = ((Date.now() - started) / 1000).toFixed(1);
           const found = partialIR.resources?.length ?? 0;
+          const cacheStatus = fromCache ? ' (cached)' : '';
           process.stdout.write(
-            ` ${elapsed}s, ${found} resource${found === 1 ? '' : 's'}\n`
+            ` ${elapsed}s, ${found} resource${found === 1 ? '' : 's'}${cacheStatus}\n`
           );
+          
+          // Update counters
+          if (fromCache) {
+            reusedCount++;
+          } else {
+            extractedCount++;
+          }
           
           return { chunkIndex, partialIR };
         } catch (error) {
@@ -91,11 +143,21 @@ export async function extract(
     const extractionEndTime = Date.now();
     const totalElapsedSeconds = ((extractionEndTime - extractionStartTime) / 1000).toFixed(1);
     
-    // Task 5.2: Output extraction summary
-    process.stdout.write(`\nExtraction complete: ${totalElapsedSeconds}s total, ${chunks.length} chunk${chunks.length === 1 ? '' : 's'} processed\n`);
+    // Task 5.2: Output extraction summary with cache usage
+    process.stdout.write(
+      `\nExtraction complete: ${totalElapsedSeconds}s total, ${chunks.length} chunk${chunks.length === 1 ? '' : 's'} processed ` +
+      `(${reusedCount} reused, ${extractedCount} extracted)\n`
+    );
 
     // Merge partial IRs into complete IR
     const mergedIR = mergePartialIRs(partialIRs, config);
+
+    // Apply auth override if present in config
+    let finalAuth = mergedIR.auth;
+    if (config.auth !== undefined) {
+      finalAuth = config.auth;
+      process.stdout.write('  Auth taken from configuration\n');
+    }
 
     // Compute full normalized documentation for content hash
     const fullContent = chunks.map(c => c.content).join('\n');
@@ -113,7 +175,7 @@ export async function extract(
         extracted_at: new Date().toISOString(),
       },
       base_url: mergedIR.base_url,
-      auth: mergedIR.auth,
+      auth: finalAuth,
       resources: mergedIR.resources,
       ...(mergedIR.pagination ? { pagination: mergedIR.pagination } : {}),
     };
@@ -580,45 +642,51 @@ function mergePartialIRs(
   config: GeneratorConfig
 ): Omit<IntermediateRepresentation, 'schema_version' | 'source'> {
   let base_url: string | undefined;
+  let base_url_chunk_index: number | undefined;
   let auth: AuthenticationScheme | undefined;
+  let auth_chunk_index: number | undefined;
   const resourcesMap = new Map<string, Resource>();
   let pagination: IntermediateRepresentation['pagination'];
 
-  // Merge base_url with conflict detection
+  // Merge base_url with earliest-wins strategy
   for (let i = 0; i < partials.length; i++) {
     const partial = partials[i]!; // Array indexed within bounds
     
     if (partial.base_url !== undefined) {
       if (base_url !== undefined && base_url !== partial.base_url) {
-        const error: GeneratorError = {
-          stage: 'extract',
-          type: 'merge_conflict',
-          field: 'base_url',
-          values: [base_url, partial.base_url],
-          chunk_indices: [0, i], // First occurrence and current
-        };
-        throw error;
+        // Conflict: emit WARNING but keep earliest value
+        process.stderr.write(
+          `WARNING: Conflicting base_url values found:\n` +
+          `  Chunk ${base_url_chunk_index}: ${base_url}\n` +
+          `  Chunk ${i}: ${partial.base_url}\n` +
+          `  Using value from chunk ${base_url_chunk_index}\n\n`
+        );
+      } else if (base_url === undefined) {
+        // First occurrence: use this value
+        base_url = partial.base_url;
+        base_url_chunk_index = i;
       }
-      base_url = partial.base_url;
     }
   }
 
-  // Merge auth with conflict detection
+  // Merge auth with earliest-wins strategy
   for (let i = 0; i < partials.length; i++) {
     const partial = partials[i]!; // Array indexed within bounds
     
     if (partial.auth !== undefined) {
-      if (auth !== undefined && auth.type !== partial.auth.type) {
-        const error: GeneratorError = {
-          stage: 'extract',
-          type: 'merge_conflict',
-          field: 'auth.type',
-          values: [auth.type, partial.auth.type],
-          chunk_indices: [0, i],
-        };
-        throw error;
+      if (auth !== undefined && JSON.stringify(auth) !== JSON.stringify(partial.auth)) {
+        // Conflict: emit WARNING but keep earliest value
+        process.stderr.write(
+          `WARNING: Conflicting auth values found:\n` +
+          `  Chunk ${auth_chunk_index}: ${JSON.stringify(auth, null, 2)}\n` +
+          `  Chunk ${i}: ${JSON.stringify(partial.auth, null, 2)}\n` +
+          `  Using value from chunk ${auth_chunk_index}\n\n`
+        );
+      } else if (auth === undefined) {
+        // First occurrence: use this value
+        auth = partial.auth;
+        auth_chunk_index = i;
       }
-      auth = partial.auth;
     }
   }
 

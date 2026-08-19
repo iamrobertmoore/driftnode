@@ -303,4 +303,95 @@ describe('loadConfig', () => {
       );
     });
   });
+
+  describe('auth override validation', () => {
+    it('should accept valid api_key auth with header location', async () => {
+      const configPath = path.join(testDir, 'auth-override.json');
+      const config = {
+        vendor: 'test',
+        documentation: {
+          type: 'url',
+          url: 'https://example.com',
+        },
+        auth: {
+          type: 'api_key',
+          location: 'header',
+          header_name: 'X-API-Key',
+        },
+      };
+      
+      await fs.promises.writeFile(configPath, JSON.stringify(config, null, 2));
+      
+      const result = await loadConfig(configPath);
+      expect(result.auth).toEqual({
+        type: 'api_key',
+        location: 'header',
+        header_name: 'X-API-Key',
+      });
+    });
+
+    it('should accept valid bearer_token auth', async () => {
+      const configPath = path.join(testDir, 'auth-bearer.json');
+      const config = {
+        vendor: 'test',
+        documentation: {
+          type: 'url',
+          url: 'https://example.com',
+        },
+        auth: {
+          type: 'bearer_token',
+          header_name: 'Authorization',
+        },
+      };
+      
+      await fs.promises.writeFile(configPath, JSON.stringify(config, null, 2));
+      
+      const result = await loadConfig(configPath);
+      expect(result.auth).toEqual({
+        type: 'bearer_token',
+        header_name: 'Authorization',
+      });
+    });
+
+    it('should throw error for invalid auth type', async () => {
+      const configPath = path.join(testDir, 'auth-invalid.json');
+      const config = {
+        vendor: 'test',
+        documentation: {
+          type: 'url',
+          url: 'https://example.com',
+        },
+        auth: {
+          type: 'invalid_type',
+        },
+      };
+      
+      await fs.promises.writeFile(configPath, JSON.stringify(config, null, 2));
+      
+      await expect(loadConfig(configPath)).rejects.toThrow(
+        /Invalid authentication type/
+      );
+    });
+
+    it('should throw error for api_key without location', async () => {
+      const configPath = path.join(testDir, 'auth-no-location.json');
+      const config = {
+        vendor: 'test',
+        documentation: {
+          type: 'url',
+          url: 'https://example.com',
+        },
+        auth: {
+          type: 'api_key',
+          header_name: 'X-API-Key',
+        },
+      };
+      
+      await fs.promises.writeFile(configPath, JSON.stringify(config, null, 2));
+      
+      await expect(loadConfig(configPath)).rejects.toThrow(
+        /must include a "location" field/
+      );
+    });
+  });
 });

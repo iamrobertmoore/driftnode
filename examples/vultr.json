@@ -4,6 +4,10 @@
     "type": "file",
     "path": "./vultr-api-docs.html"
   },
+  "auth": {
+    "type": "bearer_token",
+    "header_name": "Authorization"
+  },
   "include": [
     {
       "resource": "regions",

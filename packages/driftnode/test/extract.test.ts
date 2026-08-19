@@ -161,7 +161,7 @@ describe('extract', () => {
         return mockChild;
       });
 
-      const result = await extract(chunks, config, testWorkspace);
+      const result = await extract(chunks, config, testWorkspace, true);
 
       expect(result).toBeDefined();
       expect(result.schema_version).toBe('1.0.0');
@@ -246,7 +246,7 @@ describe('extract', () => {
         return mockChild;
       });
 
-      const result = await extract(chunks, config, testWorkspace);
+      const result = await extract(chunks, config, testWorkspace, true);
 
       expect(result.base_url).toBe('https://api.example.com');
       expect(result.auth).toEqual({
@@ -339,7 +339,7 @@ describe('extract', () => {
         return mockChild;
       });
 
-      const result = await extract(chunks, config, testWorkspace);
+      const result = await extract(chunks, config, testWorkspace, true);
 
       expect(result.resources).toHaveLength(1);
       expect(result.resources[0].operations).toHaveLength(2);
@@ -382,7 +382,7 @@ describe('extract', () => {
         return mockChild;
       });
 
-      const result = await extract([chunks[0]], config, testWorkspace);
+      const result = await extract([chunks[0]], config, testWorkspace, true);
 
       // Expected hash for "Part 1"
       const crypto = await import('crypto');
@@ -427,7 +427,7 @@ describe('extract', () => {
         throw new Error('Should not reach chunk extraction when whoami fails');
       });
 
-      await expect(extract(chunks, config, testWorkspace)).rejects.toMatchObject({
+      await expect(extract(chunks, config, testWorkspace, true)).rejects.toMatchObject({
         stage: 'extract',
         type: 'kiro_not_authenticated',
       });
@@ -469,7 +469,7 @@ describe('extract', () => {
         throw new Error('Should not reach chunk extraction');
       });
 
-      await expect(extract(chunks, config, testWorkspace)).rejects.toMatchObject({
+      await expect(extract(chunks, config, testWorkspace, true)).rejects.toMatchObject({
         stage: 'extract',
         type: 'kiro_not_authenticated',
       });
@@ -503,7 +503,7 @@ describe('extract', () => {
         return mockChild;
       });
 
-      await expect(extract(chunks, config, testWorkspace)).rejects.toMatchObject({
+      await expect(extract(chunks, config, testWorkspace, true)).rejects.toMatchObject({
         stage: 'extract',
         type: 'kiro_not_found',
       });
@@ -541,7 +541,7 @@ describe('extract', () => {
         return mockChild;
       });
 
-      await expect(extract(chunks, config, testWorkspace)).rejects.toMatchObject({
+      await expect(extract(chunks, config, testWorkspace, true)).rejects.toMatchObject({
         stage: 'extract',
         type: 'kiro_failed',
         exit_code: 1,
@@ -582,7 +582,7 @@ describe('extract', () => {
         return mockChild;
       });
 
-      await expect(extract(chunks, config, testWorkspace)).rejects.toMatchObject({
+      await expect(extract(chunks, config, testWorkspace, true)).rejects.toMatchObject({
         stage: 'extract',
         type: 'ir_file_missing',
         chunk_index: 0,
@@ -619,7 +619,7 @@ describe('extract', () => {
         return mockChild;
       });
 
-      await expect(extract(chunks, config, testWorkspace)).rejects.toMatchObject({
+      await expect(extract(chunks, config, testWorkspace, true)).rejects.toMatchObject({
         stage: 'extract',
         type: 'ir_file_empty',
         chunk_index: 0,
@@ -655,7 +655,7 @@ describe('extract', () => {
         return mockChild;
       });
 
-      await expect(extract(chunks, config, testWorkspace)).rejects.toMatchObject({
+      await expect(extract(chunks, config, testWorkspace, true)).rejects.toMatchObject({
         stage: 'extract',
         type: 'invalid_ir_json',
         chunk_index: 0,
@@ -707,15 +707,12 @@ describe('extract', () => {
         return mockChild;
       });
 
-      await expect(extract(chunks, config, testWorkspace)).rejects.toMatchObject({
-        stage: 'extract',
-        type: 'merge_conflict',
-        field: 'base_url',
-        values: ['https://api.example.com', 'https://api.different.com'],
-      });
+      // Should succeed and use first value
+      const result = await extract(chunks, config, testWorkspace, true);
+      expect(result.base_url).toBe('https://api.example.com');
     });
 
-    it('should throw merge_conflict error for conflicting auth types', async () => {
+    it('should emit warning for conflicting auth and use earliest value', async () => {
       const chunks: DocumentChunk[] = [
         { content: 'Chunk 1', start: 0, end: 7 },
         { content: 'Chunk 2', start: 7, end: 14 },
@@ -764,12 +761,9 @@ describe('extract', () => {
         return mockChild;
       });
 
-      await expect(extract(chunks, config, testWorkspace)).rejects.toMatchObject({
-        stage: 'extract',
-        type: 'merge_conflict',
-        field: 'auth.type',
-        values: ['basic', 'api_key'],
-      });
+      // Should succeed and use first value
+      const result = await extract(chunks, config, testWorkspace, true);
+      expect(result.auth).toEqual({ type: 'basic' });
     });
 
     it('should throw merge_conflict error for conflicting operation http_method', async () => {
@@ -852,7 +846,7 @@ describe('extract', () => {
         return mockChild;
       });
 
-      await expect(extract(chunks, config, testWorkspace)).rejects.toMatchObject({
+      await expect(extract(chunks, config, testWorkspace, true)).rejects.toMatchObject({
         stage: 'extract',
         type: 'merge_conflict',
         field: 'resource.instances.operation.update.http_method',
@@ -940,7 +934,7 @@ describe('extract', () => {
         return mockChild;
       });
 
-      await expect(extract(chunks, config, testWorkspace)).rejects.toMatchObject({
+      await expect(extract(chunks, config, testWorkspace, true)).rejects.toMatchObject({
         stage: 'extract',
         type: 'merge_conflict',
         field: 'resource.instances.operation.get.path',
@@ -993,7 +987,7 @@ describe('extract', () => {
         return mockChild;
       });
 
-      await expect(extract(chunks, config, testWorkspace)).rejects.toMatchObject({
+      await expect(extract(chunks, config, testWorkspace, true)).rejects.toMatchObject({
         stage: 'extract',
         type: 'missing_resource',
         resource: 'nonexistent-resource',
@@ -1056,7 +1050,7 @@ describe('extract', () => {
         return mockChild;
       });
 
-      await expect(extract(chunks, config, testWorkspace)).rejects.toMatchObject({
+      await expect(extract(chunks, config, testWorkspace, true)).rejects.toMatchObject({
         stage: 'extract',
         type: 'missing_operation',
         resource: 'instances',
@@ -1117,7 +1111,7 @@ describe('extract', () => {
         return mockChild;
       });
 
-      const result = await extract(chunks, config, testWorkspace);
+      const result = await extract(chunks, config, testWorkspace, true);
 
       expect(result.resources).toHaveLength(1);
       expect(result.resources[0].name).toBe('instances');
@@ -1199,11 +1193,67 @@ describe('extract', () => {
         return mockChild;
       });
 
-      const result = await extract(chunks, config, testWorkspace);
+      const result = await extract(chunks, config, testWorkspace, true);
 
       expect(result.resources).toHaveLength(1);
       expect(result.resources[0].operations).toHaveLength(2);
       expect(result.resources[0].operations.map(op => op.name).sort()).toEqual(['create', 'list']);
+    });
+  });
+
+  describe('auth override', () => {
+    it('should use auth from config instead of extracted auth', async () => {
+      const chunks: DocumentChunk[] = [
+        { content: 'Chunk 1', start: 0, end: 7 },
+      ];
+
+      // Config has auth override
+      const config: GeneratorConfig = {
+        vendor: 'test-vendor',
+        documentation: { type: 'url', url: 'https://example.com' },
+        auth: {
+          type: 'bearer_token',
+          header_name: 'Authorization',
+        },
+      };
+
+      // But extracted IR has different auth
+      const partial: PartialIR = {
+        base_url: 'https://api.example.com',
+        auth: {
+          type: 'api_key',
+          location: 'header',
+          header_name: 'X-API-Key',
+        },
+        resources: [],
+      };
+
+      mockAuthenticatedSpawn(() => {
+        const mockChild: any = {
+          stdout: { on: vi.fn() },
+          stderr: { on: vi.fn() },
+          stdin: { write: vi.fn(), end: vi.fn() },
+          on: vi.fn((event, handler) => {
+            if (event === 'close') {
+              const outputPath = path.join(testTempDir, 'ir-chunk-0.json');
+              fs.mkdirSync(testTempDir, { recursive: true });
+              fs.writeFileSync(outputPath, JSON.stringify(partial, null, 2));
+              setTimeout(() => handler(0), 10);
+            }
+          }),
+          killed: false,
+          kill: vi.fn(),
+        };
+        return mockChild;
+      });
+
+      const result = await extract(chunks, config, testWorkspace, true);
+
+      // Auth should come from config, not extracted value
+      expect(result.auth).toEqual({
+        type: 'bearer_token',
+        header_name: 'Authorization',
+      });
     });
   });
 });

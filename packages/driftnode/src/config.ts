@@ -151,6 +151,12 @@ export async function loadConfig(configPath: string): Promise<GeneratorConfig> {
     }
   }
 
+  // Validate auth override field
+  let authOverride: GeneratorConfig['auth'] | undefined;
+  if (config.auth !== undefined) {
+    authOverride = validateAuthScheme(config.auth);
+  }
+
   return {
     vendor: config.vendor as string,
     documentation,
@@ -172,6 +178,9 @@ export async function loadConfig(configPath: string): Promise<GeneratorConfig> {
       : {}),
     ...(config.extractionTimeoutSeconds !== undefined
       ? { extractionTimeoutSeconds: config.extractionTimeoutSeconds as number }
+      : {}),
+    ...(authOverride !== undefined
+      ? { auth: authOverride }
       : {}),
   };
 }
@@ -309,4 +318,125 @@ function validateInclude(value: unknown): GeneratorConfig['include'] {
       operations,
     };
   });
+}
+
+/**
+ * Validate AuthenticationScheme structure
+ */
+function validateAuthScheme(value: unknown): GeneratorConfig['auth'] {
+  if (typeof value !== 'object' || value === null) {
+    throw new Error(
+      `Configuration field "auth" must be an object.\n` +
+      `Expected authentication scheme with a "type" field.`
+    );
+  }
+
+  const auth = value as Record<string, unknown>;
+
+  if (!auth.type || typeof auth.type !== 'string') {
+    throw new Error(
+      `Authentication scheme missing "type" field.\n` +
+      `Expected one of: api_key, bearer_token, basic, oauth2`
+    );
+  }
+
+  // Validate based on type
+  switch (auth.type) {
+    case 'api_key':
+      if (!auth.location || typeof auth.location !== 'string') {
+        throw new Error(
+          `Authentication scheme with type "api_key" must include a "location" field.\n` +
+          `Expected: "header", "query", or "body"`
+        );
+      }
+
+      if (auth.location === 'header') {
+        if (!auth.header_name || typeof auth.header_name !== 'string') {
+          throw new Error(
+            `Authentication scheme with type "api_key" and location "header" must include "header_name" field.`
+          );
+        }
+        return {
+          type: 'api_key',
+          location: 'header',
+          header_name: auth.header_name as string,
+        };
+      } else if (auth.location === 'query') {
+        if (!auth.query_param_name || typeof auth.query_param_name !== 'string') {
+          throw new Error(
+            `Authentication scheme with type "api_key" and location "query" must include "query_param_name" field.`
+          );
+        }
+        return {
+          type: 'api_key',
+          location: 'query',
+          query_param_name: auth.query_param_name as string,
+        };
+      } else if (auth.location === 'body') {
+        if (!auth.body_field_name || typeof auth.body_field_name !== 'string') {
+          throw new Error(
+            `Authentication scheme with type "api_key" and location "body" must include "body_field_name" field.`
+          );
+        }
+        return {
+          type: 'api_key',
+          location: 'body',
+          body_field_name: auth.body_field_name as string,
+        };
+      } else {
+        throw new Error(
+          `Invalid location for api_key authentication: ${auth.location}\n` +
+          `Expected: "header", "query", or "body"`
+        );
+      }
+
+    case 'bearer_token':
+      if (!auth.header_name || typeof auth.header_name !== 'string') {
+        throw new Error(
+          `Authentication scheme with type "bearer_token" must include "header_name" field.`
+        );
+      }
+      return {
+        type: 'bearer_token',
+        header_name: auth.header_name as string,
+      };
+
+    case 'basic':
+      return { type: 'basic' };
+
+    case 'oauth2':
+      if (!auth.authorize_url || typeof auth.authorize_url !== 'string') {
+        throw new Error(
+          `Authentication scheme with type "oauth2" must include "authorize_url" field.`
+        );
+      }
+      if (!auth.token_url || typeof auth.token_url !== 'string') {
+        throw new Error(
+          `Authentication scheme with type "oauth2" must include "token_url" field.`
+        );
+      }
+
+      const oauth2Scheme: any = {
+        type: 'oauth2',
+        authorize_url: auth.authorize_url as string,
+        token_url: auth.token_url as string,
+      };
+
+      if (auth.scopes !== undefined) {
+        if (!Array.isArray(auth.scopes)) {
+          throw new Error(
+            `Authentication scheme field "scopes" must be an array of strings.`
+          );
+        }
+        oauth2Scheme.scopes = auth.scopes as string[];
+      }
+
+      return oauth2Scheme;
+
+    default:
+      throw new Error(
+        `Invalid authentication type: ${auth.type}\n` +
+        `Expected one of: api_key, bearer_token, basic, oauth2`
+      );
+  }
 }
