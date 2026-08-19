@@ -691,15 +691,19 @@ function generateParameterField(
   // Add description
   field += `\n      description: '${description}',`;
 
-  // Handle enum constraints (generate options dropdown)
+  // Handle enum constraints (generate options dropdown).
+  //
+  // generateEnumField returns a complete field including its closing brace,
+  // so return it directly. Falling through would append a second brace and
+  // terminate the properties array early, which breaks the whole file.
   if (param.constraints?.enum) {
-    field = generateEnumField(param, resourceName, operationName);
-  } else {
-    // Add validation rules for non-enum fields
-    const validationRules = generateValidationRules(param);
-    if (validationRules) {
-      field += `\n${validationRules}`;
-    }
+    return generateEnumField(param, resourceName, operationName);
+  }
+
+  // Add validation rules for non-enum fields
+  const validationRules = generateValidationRules(param);
+  if (validationRules) {
+    field += `\n${validationRules}`;
   }
 
   field += `\n    }`;
@@ -1642,7 +1646,7 @@ async function emitUnitTests(
  * No vendor credentials are required.
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, test, expect } from 'vitest';
 import { loadFixture, fixtureExists } from './fixture-loader';
 import { ${vendorName} } from '../nodes/${vendorName}/${vendorName}.node';
 

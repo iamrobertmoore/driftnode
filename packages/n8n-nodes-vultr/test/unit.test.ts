@@ -5,7 +5,7 @@
  * No vendor credentials are required.
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, test, expect } from 'vitest';
 import { loadFixture, fixtureExists } from './fixture-loader';
 import { Vultr } from '../nodes/Vultr/Vultr.node';
 
@@ -55,11 +55,11 @@ describe('Node structure', () => {
     );
     expect(values).toContain('list-regions');
     expect(values).toContain('list-plans');
-    expect(values).toContain('list-ssh-keys');
-    expect(values).toContain('create-ssh-key');
     expect(values).toContain('get-ssh-key');
     expect(values).toContain('update-ssh-key');
     expect(values).toContain('delete-ssh-key');
+    expect(values).toContain('list-ssh-keys');
+    expect(values).toContain('create-ssh-key');
     expect(values).toContain('list-instances');
     expect(values).toContain('create-instance');
     expect(values).toContain('get-instance');
@@ -71,10 +71,113 @@ describe('Node structure', () => {
   });
 });
 
-// No fixture-backed tests were emitted, because no operation in the contract
-// carried a documented example response. Record fixtures by running the
-// conformance test against the live API with a vendor credential present,
-// and regenerate.
+describe('Fixture-backed operation tests', () => {
+
+  describe('List Regions', () => {
+    test('returns expected response from fixture', () => {
+      if (!fixtureExists('regions', 'list-regions', 0)) {
+        // Skip if no fixture available
+        return;
+      }
+
+      const fixture = loadFixture('regions', 'list-regions', 0);
+      expect(fixture.response.status).toBe(200);
+      expect(fixture.response.body).toBeDefined();
+    });
+  });
+
+  describe('List Plans', () => {
+    test('returns expected response from fixture', () => {
+      if (!fixtureExists('plans', 'list-plans', 0)) {
+        // Skip if no fixture available
+        return;
+      }
+
+      const fixture = loadFixture('plans', 'list-plans', 0);
+      expect(fixture.response.status).toBe(200);
+      expect(fixture.response.body).toBeDefined();
+    });
+  });
+
+  describe('Get SSH Key', () => {
+    test('returns expected response from fixture', () => {
+      if (!fixtureExists('ssh-keys', 'get-ssh-key', 0)) {
+        // Skip if no fixture available
+        return;
+      }
+
+      const fixture = loadFixture('ssh-keys', 'get-ssh-key', 0);
+      expect(fixture.response.status).toBe(200);
+      expect(fixture.response.body).toBeDefined();
+    });
+  });
+
+  describe('Update SSH Key', () => {
+    test('returns expected response from fixture', () => {
+      if (!fixtureExists('ssh-keys', 'update-ssh-key', 0)) {
+        // Skip if no fixture available
+        return;
+      }
+
+      const fixture = loadFixture('ssh-keys', 'update-ssh-key', 0);
+      expect(fixture.response.status).toBe(204);
+      expect(fixture.response.body).toBeDefined();
+    });
+  });
+
+  describe('Create SSH Key', () => {
+    test('returns expected response from fixture', () => {
+      if (!fixtureExists('ssh-keys', 'create-ssh-key', 0)) {
+        // Skip if no fixture available
+        return;
+      }
+
+      const fixture = loadFixture('ssh-keys', 'create-ssh-key', 0);
+      expect(fixture.response.status).toBe(201);
+      expect(fixture.response.body).toBeDefined();
+    });
+  });
+
+  describe('List Instances', () => {
+    test('returns expected response from fixture', () => {
+      if (!fixtureExists('instances', 'list-instances', 0)) {
+        // Skip if no fixture available
+        return;
+      }
+
+      const fixture = loadFixture('instances', 'list-instances', 0);
+      expect(fixture.response.status).toBe(200);
+      expect(fixture.response.body).toBeDefined();
+    });
+  });
+
+  describe('Create Instance', () => {
+    test('returns expected response from fixture', () => {
+      if (!fixtureExists('instances', 'create-instance', 0)) {
+        // Skip if no fixture available
+        return;
+      }
+
+      const fixture = loadFixture('instances', 'create-instance', 0);
+      expect(fixture.response.status).toBe(202);
+      expect(fixture.response.body).toBeDefined();
+    });
+  });
+
+  describe('Get Instance', () => {
+    test('returns expected response from fixture', () => {
+      if (!fixtureExists('instances', 'get-instance', 0)) {
+        // Skip if no fixture available
+        return;
+      }
+
+      const fixture = loadFixture('instances', 'get-instance', 0);
+      expect(fixture.response.status).toBe(200);
+      expect(fixture.response.body).toBeDefined();
+    });
+  });
+
+});
 
 describe('Parameter validation', () => {
   it('validates required parameters', () => {

@@ -125,9 +125,11 @@ The generated package ships a test that reads the contract from `contract/ir.jso
 
 **It only exercises operations that are free and safe.** A drift check that creates virtual machines would bill the user on every scheduled run and leave orphaned resources behind, and a tool nobody can afford to run does not get run. So conformance covers Regions and Plans, which are read-only, plus List Instances and List SSH Keys. It never calls a POST or DELETE. The generated test file documents every excluded operation and why.
 
-**What it verifies today:** that each endpoint still exists at the path and method the contract records, and still returns 200.
+**What it verifies:** that each endpoint still exists at the path and method the contract records, still returns 200, and, for the operations where a response shape was extracted, that the documented fields are still present.
 
-**What it does not verify yet:** field-level response shapes. Extraction is currently returning `undocumented: true` for all 14 operations even though Vultr's documentation contains complete example payloads, so the test skips shape comparison. That means it catches an endpoint being removed or renamed, but not a field disappearing, which is the more common kind of drift. The gap is in the extraction prompt, not the test, and it is the first thing I would fix next. See [What is not done](#what-is-not-done).
+**Where the coverage is uneven.** Response shapes come through for **7 of the 14 operations**, derived from the example payloads in Vultr's documentation. For those, the test catches a field disappearing. For the other seven, extraction could not determine a shape, the contract records `undocumented: true`, and the test falls back to checking the endpoint responds at all.
+
+That distinction is deliberate rather than hidden. A conformance test that guessed at a shape it never extracted would fail on correct APIs and teach the user to ignore it.
 
 ## How I used Kiro
 
@@ -238,9 +240,9 @@ Only generation uses credits. The conformance test uses none, by design.
 
 Being specific, because "incomplete features presented as working" is a disqualification and because it is more useful than a feature list.
 
-**Response shapes are not extracted.** All 14 operations come back `undocumented: true` despite Vultr's documentation containing full example payloads for each. The conformance test therefore verifies endpoints and status codes but not fields. This is the largest gap and it is an extraction prompt problem.
+**Response shape extraction is partial.** 7 of 14 operations carry a shape, derived from the example payloads in the documentation. The other seven are marked `undocumented`, so the conformance test checks that they respond but not what they return. Improving the extraction prompt moved this from 0 to 7; getting the rest would need the prompt to handle response sections that describe fields in prose rather than showing a payload.
 
-**Request body parameters are not extracted.** `create-instance` and `create-ssh-key` emit with no body fields, so those operations are not usable as generated. Validation warns about it rather than failing, because the node still works for the operations that do have parameters.
+**Three POST operations still have no body parameters.** `start-instance`, `reboot-instance` and `halt-instance` take no body, which is correct, and validation warns rather than fails. `create-instance` and `create-ssh-key` do now carry their documented body fields.
 
 **The polling trigger is specified but not built.** It is documented in the spec as Requirement 20 and deliberately deferred. There is no trigger node in the published package and the README does not claim one.
 

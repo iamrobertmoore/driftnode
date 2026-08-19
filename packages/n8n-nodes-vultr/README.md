@@ -4,7 +4,8 @@
 
 n8n community node for the Vultr API.
 
-This node was generated from local file: `examples/vultr-api-docs.html` on 2026-08-19.
+This node was generated from local file: `examples/vultr-api-docs.html`, content hash `33b9eb4b6720`.
+Regenerating from the same documentation produces byte-identical output.
 
 ## Installation
 

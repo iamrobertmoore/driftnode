@@ -2,8 +2,7 @@
   "schema_version": "1.0.0",
   "source": {
     "path": "examples/vultr-api-docs.html",
-    "content_hash": "33b9eb4b67207d5716178a0201d82334e4f629d3cbaa5cf51d6b71588b86ad53",
-    "extracted_at": "2026-08-19T16:11:40.043Z"
+    "content_hash": "33b9eb4b67207d5716178a0201d82334e4f629d3cbaa5cf51d6b71588b86ad53"
   },
   "base_url": "https://api.vultr.com/v2",
   "auth": {
@@ -14,85 +13,400 @@
     {
       "name": "regions",
       "display_name": "Regions",
-      "description": "List available regions",
+      "description": "Instances can be deployed in many Regions on multiple continents. Choose any of our worldwide locations to deploy servers near your office or customers for low-latency.",
       "operations": [
         {
           "name": "list-regions",
           "display_name": "List Regions",
+          "description": "List all Regions at Vultr.",
           "http_method": "GET",
           "path": "/regions",
-          "description": "List Regions",
-          "parameters": [],
+          "parameters": [
+            {
+              "name": "per_page",
+              "display_name": "Per Page",
+              "description": "Number of items requested per page. Default is 100 and Max is 500.",
+              "location": "query",
+              "type": {
+                "kind": "integer"
+              },
+              "required": false
+            },
+            {
+              "name": "cursor",
+              "display_name": "Cursor",
+              "description": "Cursor for paging. See Meta and Pagination.",
+              "location": "query",
+              "type": {
+                "kind": "string"
+              },
+              "required": false
+            }
+          ],
           "response_shape": {
             "type": "object",
-            "undocumented": true
+            "properties": {
+              "regions": {
+                "type": "array",
+                "required": false,
+                "items_type": {
+                  "type": "object",
+                  "required": false,
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "required": false
+                    },
+                    "city": {
+                      "type": "string",
+                      "required": false
+                    },
+                    "country": {
+                      "type": "string",
+                      "required": false
+                    },
+                    "continent": {
+                      "type": "string",
+                      "required": false
+                    },
+                    "options": {
+                      "type": "array",
+                      "required": false,
+                      "items_type": {
+                        "type": "string",
+                        "required": false
+                      }
+                    },
+                    "connectivity": {
+                      "type": "array",
+                      "required": false,
+                      "items_type": {
+                        "type": "string",
+                        "required": false
+                      }
+                    }
+                  }
+                }
+              },
+              "meta": {
+                "type": "object",
+                "required": false,
+                "properties": {
+                  "total": {
+                    "type": "number",
+                    "required": false
+                  },
+                  "links": {
+                    "type": "object",
+                    "required": false,
+                    "properties": {
+                      "next": {
+                        "type": "string",
+                        "required": false
+                      },
+                      "prev": {
+                        "type": "string",
+                        "required": false
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "undocumented": false
           },
-          "examples": []
+          "examples": [
+            {
+              "name": "200 OK",
+              "request": {},
+              "response": {
+                "regions": [
+                  {
+                    "id": "ams",
+                    "city": "Amsterdam",
+                    "country": "NL",
+                    "continent": "Europe",
+                    "options": [
+                      "ddos_protection",
+                      "block_storage_high_perf",
+                      "block_storage_storage_opt",
+                      "kubernetes",
+                      "load_balancers"
+                    ],
+                    "connectivity": [
+                      "public_ip",
+                      "nat_gateway"
+                    ]
+                  }
+                ],
+                "meta": {
+                  "total": 1,
+                  "links": {
+                    "next": "",
+                    "prev": ""
+                  }
+                }
+              },
+              "status_code": 200
+            }
+          ],
+          "pagination": {
+            "style": "cursor",
+            "cursor": {
+              "cursor_param": "cursor",
+              "next_cursor_field": "meta.links.next"
+            }
+          }
         }
       ]
     },
     {
       "name": "plans",
       "display_name": "Plans",
-      "description": "List available plans",
+      "description": "A Plan is a particular configuration of vCPU, RAM, SSD, and bandwidth to deploy an Instance. Not all Plans are available in all Regions.",
       "operations": [
         {
           "name": "list-plans",
           "display_name": "List Plans",
+          "description": "Get a list of all VPS plans at Vultr.",
           "http_method": "GET",
           "path": "/plans",
-          "description": "List Plans",
-          "parameters": [],
+          "parameters": [
+            {
+              "name": "type",
+              "display_name": "Type",
+              "description": "Filter the results by type.",
+              "location": "query",
+              "type": {
+                "kind": "string"
+              },
+              "required": false,
+              "constraints": {
+                "enum": [
+                  "all",
+                  "vc2",
+                  "vdc",
+                  "vhf",
+                  "vhp",
+                  "voc",
+                  "voc-g",
+                  "voc-c",
+                  "voc-m",
+                  "voc-s",
+                  "vcg"
+                ]
+              }
+            },
+            {
+              "name": "per_page",
+              "display_name": "Per Page",
+              "description": "Number of items requested per page. Default is 100 and Max is 500.",
+              "location": "query",
+              "type": {
+                "kind": "integer"
+              },
+              "required": false
+            },
+            {
+              "name": "cursor",
+              "display_name": "Cursor",
+              "description": "Cursor for paging. See Meta and Pagination.",
+              "location": "query",
+              "type": {
+                "kind": "string"
+              },
+              "required": false
+            },
+            {
+              "name": "os",
+              "display_name": "OS",
+              "description": "Filter the results by operating system.",
+              "location": "query",
+              "type": {
+                "kind": "string"
+              },
+              "required": false,
+              "constraints": {
+                "enum": [
+                  "windows"
+                ]
+              }
+            }
+          ],
           "response_shape": {
             "type": "object",
-            "undocumented": true
+            "properties": {
+              "plans": {
+                "type": "array",
+                "required": false,
+                "items_type": {
+                  "type": "object",
+                  "required": false,
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "required": false
+                    },
+                    "vcpu_count": {
+                      "type": "number",
+                      "required": false
+                    },
+                    "ram": {
+                      "type": "number",
+                      "required": false
+                    },
+                    "disk": {
+                      "type": "number",
+                      "required": false
+                    },
+                    "disk_count": {
+                      "type": "number",
+                      "required": false
+                    },
+                    "bandwidth": {
+                      "type": "number",
+                      "required": false
+                    },
+                    "invoice_type": {
+                      "type": "string",
+                      "required": false
+                    },
+                    "monthly_cost": {
+                      "type": "number",
+                      "required": false
+                    },
+                    "hourly_cost": {
+                      "type": "number",
+                      "required": false
+                    },
+                    "monthly_cost_preemptible": {
+                      "type": "number",
+                      "required": false
+                    },
+                    "hourly_cost_preemptible": {
+                      "type": "number",
+                      "required": false
+                    },
+                    "type": {
+                      "type": "string",
+                      "required": false
+                    },
+                    "locations": {
+                      "type": "array",
+                      "required": false,
+                      "items_type": {
+                        "type": "string",
+                        "required": false
+                      }
+                    },
+                    "location_cost": {
+                      "type": "object",
+                      "required": false
+                    },
+                    "gpu_brand": {
+                      "type": "string",
+                      "required": false
+                    }
+                  }
+                }
+              },
+              "meta": {
+                "type": "object",
+                "required": false,
+                "properties": {
+                  "total": {
+                    "type": "number",
+                    "required": false
+                  },
+                  "links": {
+                    "type": "object",
+                    "required": false,
+                    "properties": {
+                      "next": {
+                        "type": "string",
+                        "required": false
+                      },
+                      "prev": {
+                        "type": "string",
+                        "required": false
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "undocumented": false
           },
-          "examples": []
+          "examples": [
+            {
+              "name": "List Plans Response",
+              "request": {},
+              "response": {
+                "plans": [
+                  {
+                    "id": "vhf-8c-32gb",
+                    "vcpu_count": 8,
+                    "ram": 32768,
+                    "disk": 512,
+                    "disk_count": 1,
+                    "bandwidth": 6144,
+                    "invoice_type": "monthly",
+                    "monthly_cost": 192,
+                    "hourly_cost": 0.26,
+                    "monthly_cost_preemptible": 192,
+                    "hourly_cost_preemptible": 0.26,
+                    "type": "vhf",
+                    "locations": [
+                      "sea"
+                    ],
+                    "location_cost": {
+                      "sea": {
+                        "monthly_cost": 192,
+                        "hourly_cost": 0.26,
+                        "monthly_cost_preemptible": 192,
+                        "hourly_cost_preemptible": 0.26
+                      }
+                    },
+                    "gpu_brand": "none"
+                  }
+                ],
+                "meta": {
+                  "total": 1,
+                  "links": {
+                    "next": "",
+                    "prev": ""
+                  }
+                }
+              },
+              "status_code": 200
+            }
+          ],
+          "pagination": {
+            "style": "cursor",
+            "cursor": {
+              "cursor_param": "cursor",
+              "next_cursor_field": "meta.links.next"
+            }
+          }
         }
       ]
     },
     {
       "name": "ssh-keys",
       "display_name": "SSH Keys",
-      "description": "Manage SSH keys",
+      "description": "You can add SSH keys to your account, which can be copied to new instances when first deployed. Updating a key does not update any running instances. If you reinstall an instance (erasing all its data), it will inherit the updated key.",
       "operations": [
-        {
-          "name": "list-ssh-keys",
-          "display_name": "List SSH Keys",
-          "http_method": "GET",
-          "path": "/ssh-keys",
-          "description": "List SSH Keys",
-          "parameters": [],
-          "response_shape": {
-            "type": "object",
-            "undocumented": true
-          },
-          "examples": []
-        },
-        {
-          "name": "create-ssh-key",
-          "display_name": "Create SSH key",
-          "http_method": "POST",
-          "path": "/ssh-keys",
-          "description": "Create SSH key",
-          "parameters": [],
-          "response_shape": {
-            "type": "object",
-            "undocumented": true
-          },
-          "examples": []
-        },
         {
           "name": "get-ssh-key",
           "display_name": "Get SSH Key",
+          "description": "Get information about an SSH Key.",
           "http_method": "GET",
           "path": "/ssh-keys/{ssh-key-id}",
-          "description": "Get SSH Key",
           "parameters": [
             {
               "name": "ssh-key-id",
               "display_name": "SSH Key ID",
-              "description": "The SSH key ID",
+              "description": "The SSH Key id.",
               "location": "path",
               "type": {
                 "kind": "string"
@@ -102,21 +416,113 @@
           ],
           "response_shape": {
             "type": "object",
-            "undocumented": true
+            "properties": {
+              "ssh_key": {
+                "type": "object",
+                "required": false,
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "required": false
+                  },
+                  "date_created": {
+                    "type": "string",
+                    "required": false
+                  },
+                  "name": {
+                    "type": "string",
+                    "required": false
+                  },
+                  "ssh_key": {
+                    "type": "string",
+                    "required": false
+                  }
+                }
+              }
+            },
+            "undocumented": false
           },
-          "examples": []
+          "examples": [
+            {
+              "name": "200 OK",
+              "request": {},
+              "response": {
+                "ssh_key": {
+                  "id": "3b8066a7-b438-455a-9688-44afc9a3597f",
+                  "date_created": "2020-10-10T01:56:20+00:00",
+                  "name": "Example SSH Key",
+                  "ssh_key": "ssh-rsa AA... user@example.com"
+                }
+              },
+              "status_code": 200
+            }
+          ]
         },
         {
           "name": "update-ssh-key",
           "display_name": "Update SSH Key",
+          "description": "Update an SSH Key. The attributes name and ssh_key are optional. If not set, the attributes will retain their original values. New deployments will use the updated key, but this action does not update previously deployed instances.",
           "http_method": "PATCH",
           "path": "/ssh-keys/{ssh-key-id}",
-          "description": "Update SSH Key",
           "parameters": [
             {
               "name": "ssh-key-id",
               "display_name": "SSH Key ID",
-              "description": "The SSH key ID",
+              "description": "The SSH Key id.",
+              "location": "path",
+              "type": {
+                "kind": "string"
+              },
+              "required": true
+            },
+            {
+              "name": "name",
+              "display_name": "Name",
+              "description": "The user-supplied name for this SSH Key.",
+              "location": "body",
+              "type": {
+                "kind": "string"
+              },
+              "required": false
+            },
+            {
+              "name": "ssh_key",
+              "display_name": "SSH Key",
+              "description": "The SSH Key.",
+              "location": "body",
+              "type": {
+                "kind": "string"
+              },
+              "required": false
+            }
+          ],
+          "response_shape": {
+            "type": "object",
+            "undocumented": true
+          },
+          "examples": [
+            {
+              "name": "Request Payload",
+              "request": {
+                "name": "Example SSH Key",
+                "ssh_key": "ssh-rsa AA... user@example.com"
+              },
+              "response": null,
+              "status_code": 204
+            }
+          ]
+        },
+        {
+          "name": "delete-ssh-key",
+          "display_name": "Delete SSH Key",
+          "description": "Delete an SSH Key.",
+          "http_method": "DELETE",
+          "path": "/ssh-keys/{ssh-key-id}",
+          "parameters": [
+            {
+              "name": "ssh-key-id",
+              "display_name": "SSH Key ID",
+              "description": "The SSH Key id.",
               "location": "path",
               "type": {
                 "kind": "string"
@@ -131,17 +537,68 @@
           "examples": []
         },
         {
-          "name": "delete-ssh-key",
-          "display_name": "Delete SSH Key",
-          "http_method": "DELETE",
-          "path": "/ssh-keys/{ssh-key-id}",
-          "description": "Delete SSH Key",
+          "name": "list-ssh-keys",
+          "display_name": "List SSH Keys",
+          "description": "List all SSH Keys in your account.",
+          "http_method": "GET",
+          "path": "/ssh-keys",
           "parameters": [
             {
-              "name": "ssh-key-id",
-              "display_name": "SSH Key ID",
-              "description": "The SSH key ID",
-              "location": "path",
+              "name": "per_page",
+              "display_name": "Per Page",
+              "description": "Number of items requested per page. Default is 100 and Max is 500.",
+              "location": "query",
+              "type": {
+                "kind": "integer"
+              },
+              "required": false
+            },
+            {
+              "name": "cursor",
+              "display_name": "Cursor",
+              "description": "Cursor for paging. See Meta and Pagination.",
+              "location": "query",
+              "type": {
+                "kind": "string"
+              },
+              "required": false
+            }
+          ],
+          "response_shape": {
+            "type": "object",
+            "undocumented": true
+          },
+          "examples": [],
+          "pagination": {
+            "style": "cursor",
+            "cursor": {
+              "cursor_param": "cursor",
+              "next_cursor_field": "meta.links.next"
+            }
+          }
+        },
+        {
+          "name": "create-ssh-key",
+          "display_name": "Create SSH Key",
+          "description": "Create a new SSH Key for use with future instances. This does not update any running instances.",
+          "http_method": "POST",
+          "path": "/ssh-keys",
+          "parameters": [
+            {
+              "name": "name",
+              "display_name": "Name",
+              "description": "The user-supplied name for this SSH Key.",
+              "location": "body",
+              "type": {
+                "kind": "string"
+              },
+              "required": true
+            },
+            {
+              "name": "ssh_key",
+              "display_name": "SSH Key",
+              "description": "The SSH Key.",
+              "location": "body",
               "type": {
                 "kind": "string"
               },
@@ -150,54 +607,838 @@
           ],
           "response_shape": {
             "type": "object",
-            "undocumented": true
+            "properties": {
+              "ssh_key": {
+                "type": "object",
+                "required": false,
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "required": false
+                  },
+                  "date_created": {
+                    "type": "string",
+                    "required": false
+                  },
+                  "name": {
+                    "type": "string",
+                    "required": false
+                  },
+                  "ssh_key": {
+                    "type": "string",
+                    "required": false
+                  }
+                }
+              }
+            },
+            "undocumented": false
           },
-          "examples": []
+          "examples": [
+            {
+              "name": "Create SSH Key 201",
+              "request": {
+                "name": "Example SSH Key",
+                "ssh_key": "ssh-rsa AA... user@example.com"
+              },
+              "response": {
+                "ssh_key": {
+                  "id": "cb676a46-66fd-4dfb-b839-443f2e6c0b60",
+                  "date_created": "2020-10-10T01:56:20+00:00",
+                  "name": "Example SSH Key",
+                  "ssh_key": "ssh-rsa AA... user@example.com"
+                }
+              },
+              "status_code": 201
+            }
+          ]
         }
       ]
     },
     {
       "name": "instances",
       "display_name": "Instances",
-      "description": "Manage cloud compute instances",
+      "description": "Vultr Cloud instances can be deployed with your preferred operating system or pre-installed application in seconds. High Frequency Compute instances are powered by high clock speed CPU's and NVMe local storage to power your most demanding applications. Dedicated Cloud instances have dedicated CPU, SSD drives, and RAM.",
       "operations": [
         {
           "name": "list-instances",
           "display_name": "List Instances",
+          "description": "List all VPS instances in your account.",
           "http_method": "GET",
           "path": "/instances",
-          "description": "List Instances",
-          "parameters": [],
+          "parameters": [
+            {
+              "name": "per_page",
+              "display_name": "Per Page",
+              "description": "Number of items requested per page. Default is 100 and Max is 500.",
+              "location": "query",
+              "type": {
+                "kind": "integer"
+              },
+              "required": false,
+              "default_value": 100,
+              "constraints": {
+                "maximum": 500
+              }
+            },
+            {
+              "name": "cursor",
+              "display_name": "Cursor",
+              "description": "Cursor for paging. See Meta and Pagination.",
+              "location": "query",
+              "type": {
+                "kind": "string"
+              },
+              "required": false
+            },
+            {
+              "name": "tag",
+              "display_name": "Tag",
+              "description": "Deprecated. Filter by specific tag.",
+              "location": "query",
+              "type": {
+                "kind": "string"
+              },
+              "required": false
+            },
+            {
+              "name": "label",
+              "display_name": "Label",
+              "description": "Filter by label.",
+              "location": "query",
+              "type": {
+                "kind": "string"
+              },
+              "required": false
+            },
+            {
+              "name": "main_ip",
+              "display_name": "Main IP",
+              "description": "Filter by main ip address.",
+              "location": "query",
+              "type": {
+                "kind": "string"
+              },
+              "required": false
+            },
+            {
+              "name": "region",
+              "display_name": "Region",
+              "description": "Filter by Region id.",
+              "location": "query",
+              "type": {
+                "kind": "string"
+              },
+              "required": false
+            },
+            {
+              "name": "firewall_group_id",
+              "display_name": "Firewall Group ID",
+              "description": "Filter by Firewall group id.",
+              "location": "query",
+              "type": {
+                "kind": "string"
+              },
+              "required": false
+            },
+            {
+              "name": "hostname",
+              "display_name": "Hostname",
+              "description": "Filter by hostname.",
+              "location": "query",
+              "type": {
+                "kind": "string"
+              },
+              "required": false
+            },
+            {
+              "name": "show_pending_charges",
+              "display_name": "Show Pending Charges",
+              "description": "Set to true to show pending charges.",
+              "location": "query",
+              "type": {
+                "kind": "boolean"
+              },
+              "required": false
+            }
+          ],
           "response_shape": {
             "type": "object",
-            "undocumented": true
+            "properties": {
+              "instances": {
+                "type": "array",
+                "required": false,
+                "items_type": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "required": false
+                    },
+                    "os": {
+                      "type": "string",
+                      "required": false
+                    },
+                    "ram": {
+                      "type": "number",
+                      "required": false
+                    },
+                    "disk": {
+                      "type": "number",
+                      "required": false
+                    },
+                    "main_ip": {
+                      "type": "string",
+                      "required": false
+                    },
+                    "vcpu_count": {
+                      "type": "number",
+                      "required": false
+                    },
+                    "region": {
+                      "type": "string",
+                      "required": false
+                    },
+                    "plan": {
+                      "type": "string",
+                      "required": false
+                    },
+                    "date_created": {
+                      "type": "string",
+                      "required": false
+                    },
+                    "status": {
+                      "type": "string",
+                      "required": false
+                    },
+                    "allowed_bandwidth": {
+                      "type": "number",
+                      "required": false
+                    },
+                    "netmask_v4": {
+                      "type": "string",
+                      "required": false
+                    },
+                    "gateway_v4": {
+                      "type": "string",
+                      "required": false
+                    },
+                    "power_status": {
+                      "type": "string",
+                      "required": false
+                    },
+                    "server_status": {
+                      "type": "string",
+                      "required": false
+                    },
+                    "v6_network": {
+                      "type": "string",
+                      "required": false
+                    },
+                    "v6_main_ip": {
+                      "type": "string",
+                      "required": false
+                    },
+                    "v6_network_size": {
+                      "type": "number",
+                      "required": false
+                    },
+                    "label": {
+                      "type": "string",
+                      "required": false
+                    },
+                    "internal_ip": {
+                      "type": "string",
+                      "required": false
+                    },
+                    "vpc_only": {
+                      "type": "boolean",
+                      "required": false
+                    },
+                    "vpcs": {
+                      "type": "array",
+                      "required": false,
+                      "items_type": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "required": false
+                          },
+                          "version": {
+                            "type": "number",
+                            "required": false
+                          },
+                          "subnet": {
+                            "type": "string",
+                            "required": false
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "undocumented": false
           },
-          "examples": []
+          "examples": [
+            {
+              "name": "200 OK",
+              "request": {},
+              "response": {
+                "instances": [
+                  {
+                    "id": "cb676a46-66fd-4dfb-b839-443f2e6c0b60",
+                    "os": "CentOS SELinux 8 x64",
+                    "ram": 2048,
+                    "disk": 55,
+                    "main_ip": "192.0.2.123",
+                    "vcpu_count": 1,
+                    "region": "atl",
+                    "plan": "vc2-6c-16gb",
+                    "date_created": "2020-10-10T01:56:20+00:00",
+                    "status": "active",
+                    "allowed_bandwidth": 2000,
+                    "netmask_v4": "255.255.252.0",
+                    "gateway_v4": "192.0.2.1",
+                    "power_status": "running",
+                    "server_status": "ok",
+                    "v6_network": "2001:0db8:1112:18fb::",
+                    "v6_main_ip": "2001:0db8:1112:18fb:0200:00ff:fe00:0000",
+                    "v6_network_size": 64,
+                    "label": "Example Instance",
+                    "internal_ip": "",
+                    "vpc_only": false,
+                    "vpcs": [
+                      {
+                        "id": "775e26b3-f67d-46b7-87ed-1a0457fb3a5e",
+                        "version": 1,
+                        "subnet": "10.1.96.3"
+                      }
+                    ]
+                  }
+                ]
+              },
+              "status_code": 200
+            }
+          ],
+          "pagination": {
+            "style": "cursor",
+            "cursor": {
+              "cursor_param": "cursor",
+              "next_cursor_field": "meta.links.next"
+            }
+          }
         },
         {
           "name": "create-instance",
           "display_name": "Create Instance",
+          "description": "Create a new VPS Instance in a region with the desired plan. Choose one of the following to deploy the instance: os_id, iso_id, snapshot_id, app_id, image_id.",
           "http_method": "POST",
           "path": "/instances",
-          "description": "Create Instance",
-          "parameters": [],
+          "parameters": [
+            {
+              "name": "region",
+              "display_name": "Region",
+              "description": "The Region id where the Instance is located.",
+              "location": "body",
+              "type": {
+                "kind": "string"
+              },
+              "required": true
+            },
+            {
+              "name": "plan",
+              "display_name": "Plan",
+              "description": "The Plan id to use when deploying this instance.",
+              "location": "body",
+              "type": {
+                "kind": "string"
+              },
+              "required": true
+            },
+            {
+              "name": "os_id",
+              "display_name": "OS ID",
+              "description": "The Operating System id to use when deploying this instance.",
+              "location": "body",
+              "type": {
+                "kind": "integer"
+              },
+              "required": false
+            },
+            {
+              "name": "ipxe_chain_url",
+              "display_name": "iPXE Chain URL",
+              "description": "The URL location of the iPXE chainloader.",
+              "location": "body",
+              "type": {
+                "kind": "string"
+              },
+              "required": false
+            },
+            {
+              "name": "iso_id",
+              "display_name": "ISO ID",
+              "description": "The ISO id to use when deploying this instance.",
+              "location": "body",
+              "type": {
+                "kind": "string"
+              },
+              "required": false
+            },
+            {
+              "name": "script_id",
+              "display_name": "Script ID",
+              "description": "The Startup Script id to use when deploying this instance.",
+              "location": "body",
+              "type": {
+                "kind": "string"
+              },
+              "required": false
+            },
+            {
+              "name": "snapshot_id",
+              "display_name": "Snapshot ID",
+              "description": "The Snapshot id to use when deploying the instance.",
+              "location": "body",
+              "type": {
+                "kind": "string"
+              },
+              "required": false
+            },
+            {
+              "name": "enable_ipv6",
+              "display_name": "Enable IPv6",
+              "description": "Enable IPv6.",
+              "location": "body",
+              "type": {
+                "kind": "boolean"
+              },
+              "required": false
+            },
+            {
+              "name": "disable_public_ipv4",
+              "display_name": "Disable Public IPv4",
+              "description": "Don't set up a public IPv4 address when IPv6 is enabled. Will not do anything unless enable_ipv6 is also true.",
+              "location": "body",
+              "type": {
+                "kind": "boolean"
+              },
+              "required": false
+            },
+            {
+              "name": "attach_vpc",
+              "display_name": "Attach VPC",
+              "description": "An array of VPC IDs to attach to this Instance. This parameter takes precedence over enable_vpc. Please choose one parameter.",
+              "location": "body",
+              "type": {
+                "kind": "array",
+                "items_type": {
+                  "kind": "string"
+                }
+              },
+              "required": false
+            },
+            {
+              "name": "label",
+              "display_name": "Label",
+              "description": "A user-supplied label for this instance.",
+              "location": "body",
+              "type": {
+                "kind": "string"
+              },
+              "required": false
+            },
+            {
+              "name": "sshkey_id",
+              "display_name": "SSH Key ID",
+              "description": "The SSH Key id to install on this instance.",
+              "location": "body",
+              "type": {
+                "kind": "array",
+                "items_type": {
+                  "kind": "string"
+                }
+              },
+              "required": false
+            },
+            {
+              "name": "backups",
+              "display_name": "Backups",
+              "description": "Enable automatic backups for the instance (does not work for VX1 block storage).",
+              "location": "body",
+              "type": {
+                "kind": "string"
+              },
+              "required": false,
+              "constraints": {
+                "enum": [
+                  "enabled",
+                  "disabled"
+                ]
+              }
+            },
+            {
+              "name": "app_id",
+              "display_name": "App ID",
+              "description": "The Application id to use when deploying this instance.",
+              "location": "body",
+              "type": {
+                "kind": "integer"
+              },
+              "required": false
+            },
+            {
+              "name": "image_id",
+              "display_name": "Image ID",
+              "description": "The Application image_id to use when deploying this instance.",
+              "location": "body",
+              "type": {
+                "kind": "string"
+              },
+              "required": false
+            },
+            {
+              "name": "user_data",
+              "display_name": "User Data",
+              "description": "The user-supplied, base64 encoded user data to attach to this instance.",
+              "location": "body",
+              "type": {
+                "kind": "string"
+              },
+              "required": false
+            },
+            {
+              "name": "ddos_protection",
+              "display_name": "DDoS Protection",
+              "description": "Enable DDoS protection (there is an additional charge for this).",
+              "location": "body",
+              "type": {
+                "kind": "boolean"
+              },
+              "required": false
+            },
+            {
+              "name": "activation_email",
+              "display_name": "Activation Email",
+              "description": "Notify by email after deployment.",
+              "location": "body",
+              "type": {
+                "kind": "boolean"
+              },
+              "required": false,
+              "default_value": false
+            },
+            {
+              "name": "hostname",
+              "display_name": "Hostname",
+              "description": "The hostname to use when deploying this instance.",
+              "location": "body",
+              "type": {
+                "kind": "string"
+              },
+              "required": false
+            },
+            {
+              "name": "firewall_group_id",
+              "display_name": "Firewall Group ID",
+              "description": "The Firewall Group id to attach to this Instance.",
+              "location": "body",
+              "type": {
+                "kind": "string"
+              },
+              "required": false
+            },
+            {
+              "name": "reserved_ipv4",
+              "display_name": "Reserved IPv4",
+              "description": "ID of the floating IP to use as the main IP of this server.",
+              "location": "body",
+              "type": {
+                "kind": "string"
+              },
+              "required": false
+            },
+            {
+              "name": "enable_vpc",
+              "display_name": "Enable VPC",
+              "description": "If true, VPC support will be added to the new server. This parameter attaches a single VPC. When no VPC exists in the region, it will be automatically created. If there are multiple VPCs in the instance's region, use attach_vpc instead to specify a network.",
+              "location": "body",
+              "type": {
+                "kind": "boolean"
+              },
+              "required": false
+            },
+            {
+              "name": "vpc_only",
+              "display_name": "VPC Only",
+              "description": "If true, this VPS will not receive a public IP or public NIC. A vpc_id will be required in the attach_vpc array. The first vpc_id provided must have a NAT Gateway attached. This VPS will gain access to the internet via the NAT Gateway attached to the VPC.",
+              "location": "body",
+              "type": {
+                "kind": "boolean"
+              },
+              "required": false
+            },
+            {
+              "name": "tags",
+              "display_name": "Tags",
+              "description": "Tags to apply to the instance.",
+              "location": "body",
+              "type": {
+                "kind": "array",
+                "items_type": {
+                  "kind": "string"
+                }
+              },
+              "required": false
+            },
+            {
+              "name": "user_scheme",
+              "display_name": "User Scheme",
+              "description": "Linux-only: The user scheme used for logging into this instance. By default, the \"root\" user is configured. Alternatively, a limited user with sudo permissions can be selected.",
+              "location": "body",
+              "type": {
+                "kind": "string"
+              },
+              "required": false,
+              "constraints": {
+                "enum": [
+                  "root",
+                  "limited"
+                ]
+              }
+            },
+            {
+              "name": "app_variables",
+              "display_name": "App Variables",
+              "description": "The app variable inputs for configuring the marketplace app (name/value pairs).",
+              "location": "body",
+              "type": {
+                "kind": "object",
+                "properties": {}
+              },
+              "required": false
+            }
+          ],
           "response_shape": {
             "type": "object",
-            "undocumented": true
+            "properties": {
+              "instance": {
+                "type": "object",
+                "required": false,
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "required": false
+                  },
+                  "os": {
+                    "type": "string",
+                    "required": false
+                  },
+                  "ram": {
+                    "type": "number",
+                    "required": false
+                  },
+                  "disk": {
+                    "type": "number",
+                    "required": false
+                  },
+                  "main_ip": {
+                    "type": "string",
+                    "required": false
+                  },
+                  "vcpu_count": {
+                    "type": "number",
+                    "required": false
+                  },
+                  "region": {
+                    "type": "string",
+                    "required": false
+                  },
+                  "plan": {
+                    "type": "string",
+                    "required": false
+                  },
+                  "date_created": {
+                    "type": "string",
+                    "required": false
+                  },
+                  "status": {
+                    "type": "string",
+                    "required": false
+                  },
+                  "allowed_bandwidth": {
+                    "type": "number",
+                    "required": false
+                  },
+                  "netmask_v4": {
+                    "type": "string",
+                    "required": false
+                  },
+                  "gateway_v4": {
+                    "type": "string",
+                    "required": false
+                  },
+                  "power_status": {
+                    "type": "string",
+                    "required": false
+                  },
+                  "server_status": {
+                    "type": "string",
+                    "required": false
+                  },
+                  "v6_network": {
+                    "type": "string",
+                    "required": false
+                  },
+                  "v6_main_ip": {
+                    "type": "string",
+                    "required": false
+                  },
+                  "v6_network_size": {
+                    "type": "number",
+                    "required": false
+                  },
+                  "label": {
+                    "type": "string",
+                    "required": false
+                  },
+                  "internal_ip": {
+                    "type": "string",
+                    "required": false
+                  },
+                  "vpc_only": {
+                    "type": "boolean",
+                    "required": false
+                  },
+                  "kvm": {
+                    "type": "string",
+                    "required": false
+                  },
+                  "hostname": {
+                    "type": "string",
+                    "required": false
+                  },
+                  "os_id": {
+                    "type": "number",
+                    "required": false
+                  },
+                  "app_id": {
+                    "type": "number",
+                    "required": false
+                  },
+                  "image_id": {
+                    "type": "string",
+                    "required": false
+                  },
+                  "snapshot_id": {
+                    "type": "string",
+                    "required": false
+                  },
+                  "firewall_group_id": {
+                    "type": "string",
+                    "required": false
+                  },
+                  "features": {
+                    "type": "array",
+                    "required": false,
+                    "items_type": {
+                      "type": "string",
+                      "required": false
+                    }
+                  },
+                  "default_password": {
+                    "type": "string",
+                    "required": false
+                  },
+                  "tags": {
+                    "type": "array",
+                    "required": false,
+                    "items_type": {
+                      "type": "string",
+                      "required": false
+                    }
+                  },
+                  "user_scheme": {
+                    "type": "string",
+                    "required": false
+                  }
+                }
+              }
+            },
+            "undocumented": false
           },
-          "examples": []
+          "examples": [
+            {
+              "name": "Create Instance",
+              "request": {
+                "region": "ewr",
+                "plan": "vc2-6c-16gb",
+                "label": "Example Instance",
+                "os_id": 215,
+                "user_data": "QmFzZTY0IEV4YW1wbGUgRGF0YQ==",
+                "backups": "enabled",
+                "hostname": "my_hostname",
+                "tags": [
+                  "a tag",
+                  "another"
+                ]
+              },
+              "response": {
+                "instance": {
+                  "id": "4f0f12e5-1f84-404f-aa84-85f431ea5ec2",
+                  "os": "CentOS 8 Stream",
+                  "ram": 1024,
+                  "disk": 0,
+                  "main_ip": "0.0.0.0",
+                  "vcpu_count": 1,
+                  "region": "ewr",
+                  "plan": "vc2-1c-1gb",
+                  "date_created": "2021-09-14T13:22:20+00:00",
+                  "status": "pending",
+                  "allowed_bandwidth": 1000,
+                  "netmask_v4": "",
+                  "gateway_v4": "0.0.0.0",
+                  "power_status": "running",
+                  "server_status": "none",
+                  "v6_network": "",
+                  "v6_main_ip": "",
+                  "v6_network_size": 0,
+                  "label": "",
+                  "internal_ip": "",
+                  "vpc_only": false,
+                  "kvm": "",
+                  "hostname": "my_hostname",
+                  "os_id": 401,
+                  "app_id": 0,
+                  "image_id": "",
+                  "snapshot_id": "",
+                  "firewall_group_id": "",
+                  "features": [],
+                  "default_password": "v5{Fkvb#2ycPGwHs",
+                  "tags": [
+                    "a tag",
+                    "another"
+                  ],
+                  "user_scheme": "root"
+                }
+              },
+              "status_code": 202
+            }
+          ]
         },
         {
           "name": "get-instance",
           "display_name": "Get Instance",
+          "description": "Get information about an Instance.",
           "http_method": "GET",
           "path": "/instances/{instance-id}",
-          "description": "Get Instance",
           "parameters": [
             {
               "name": "instance-id",
               "display_name": "Instance ID",
-              "description": "The instance ID",
+              "description": "The Instance ID.",
               "location": "path",
               "type": {
                 "kind": "string"
@@ -207,21 +1448,248 @@
           ],
           "response_shape": {
             "type": "object",
-            "undocumented": true
+            "properties": {
+              "instance": {
+                "type": "object",
+                "required": false,
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "required": false
+                  },
+                  "os": {
+                    "type": "string",
+                    "required": false
+                  },
+                  "ram": {
+                    "type": "number",
+                    "required": false
+                  },
+                  "disk": {
+                    "type": "number",
+                    "required": false
+                  },
+                  "main_ip": {
+                    "type": "string",
+                    "required": false
+                  },
+                  "vcpu_count": {
+                    "type": "number",
+                    "required": false
+                  },
+                  "region": {
+                    "type": "string",
+                    "required": false
+                  },
+                  "plan": {
+                    "type": "string",
+                    "required": false
+                  },
+                  "date_created": {
+                    "type": "string",
+                    "required": false
+                  },
+                  "status": {
+                    "type": "string",
+                    "required": false
+                  },
+                  "allowed_bandwidth": {
+                    "type": "number",
+                    "required": false
+                  },
+                  "netmask_v4": {
+                    "type": "string",
+                    "required": false
+                  },
+                  "gateway_v4": {
+                    "type": "string",
+                    "required": false
+                  },
+                  "power_status": {
+                    "type": "string",
+                    "required": false
+                  },
+                  "server_status": {
+                    "type": "string",
+                    "required": false
+                  },
+                  "v6_network": {
+                    "type": "string",
+                    "required": false
+                  },
+                  "v6_main_ip": {
+                    "type": "string",
+                    "required": false
+                  },
+                  "v6_network_size": {
+                    "type": "number",
+                    "required": false
+                  },
+                  "label": {
+                    "type": "string",
+                    "required": false
+                  },
+                  "internal_ip": {
+                    "type": "string",
+                    "required": false
+                  },
+                  "vpc_only": {
+                    "type": "boolean",
+                    "required": false
+                  },
+                  "vpcs": {
+                    "type": "array",
+                    "required": false,
+                    "items_type": {
+                      "type": "object",
+                      "required": false,
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "required": false
+                        },
+                        "version": {
+                          "type": "number",
+                          "required": false
+                        },
+                        "subnet": {
+                          "type": "string",
+                          "required": false
+                        }
+                      }
+                    }
+                  },
+                  "kvm": {
+                    "type": "string",
+                    "required": false
+                  },
+                  "hostname": {
+                    "type": "string",
+                    "required": false
+                  },
+                  "os_id": {
+                    "type": "number",
+                    "required": false
+                  },
+                  "app_id": {
+                    "type": "number",
+                    "required": false
+                  },
+                  "image_id": {
+                    "type": "string",
+                    "required": false
+                  },
+                  "snapshot_id": {
+                    "type": "string",
+                    "required": false
+                  },
+                  "firewall_group_id": {
+                    "type": "string",
+                    "required": false
+                  },
+                  "features": {
+                    "type": "array",
+                    "required": false,
+                    "items_type": {
+                      "type": "string",
+                      "required": false
+                    }
+                  },
+                  "tags": {
+                    "type": "array",
+                    "required": false,
+                    "items_type": {
+                      "type": "string",
+                      "required": false
+                    }
+                  },
+                  "user_scheme": {
+                    "type": "string",
+                    "required": false
+                  },
+                  "pending_charges": {
+                    "type": "number",
+                    "required": false
+                  }
+                }
+              }
+            },
+            "undocumented": false
           },
-          "examples": []
+          "examples": [
+            {
+              "name": "Get Instance",
+              "request": {},
+              "response": {
+                "instance": {
+                  "id": "cb676a46-66fd-4dfb-b839-443f2e6c0b60",
+                  "os": "Ubuntu 20.04 x64",
+                  "ram": 16384,
+                  "disk": 384,
+                  "main_ip": "192.0.2.123",
+                  "vcpu_count": 4,
+                  "region": "ewr",
+                  "plan": "vc2-6c-16gb",
+                  "date_created": "2020-10-10T01:56:20+00:00",
+                  "status": "active",
+                  "allowed_bandwidth": 5000,
+                  "netmask_v4": "255.255.254.0",
+                  "gateway_v4": "192.0.2.1",
+                  "power_status": "running",
+                  "server_status": "ok",
+                  "v6_network": "",
+                  "v6_main_ip": "",
+                  "v6_network_size": 0,
+                  "label": "Example Instance",
+                  "internal_ip": "",
+                  "vpc_only": false,
+                  "vpcs": [
+                    {
+                      "id": "775e26b3-f67d-46b7-87ed-1a0457fb3a5e",
+                      "version": 1,
+                      "subnet": "10.1.96.3"
+                    },
+                    {
+                      "id": "090a49c0-a1a2-4aab-a263-5d58f180c905",
+                      "version": 2,
+                      "subnet": "10.1.128.3"
+                    }
+                  ],
+                  "kvm": "https://console.vultr.com/subs/vps/novnc/api.php?data=00example11223344",
+                  "hostname": "my_hostname",
+                  "os_id": 215,
+                  "app_id": 0,
+                  "image_id": "",
+                  "snapshot_id": "",
+                  "firewall_group_id": "",
+                  "features": [
+                    "ddos_protection",
+                    "ipv6",
+                    "auto_backups"
+                  ],
+                  "tags": [
+                    "a tag",
+                    "another"
+                  ],
+                  "user_scheme": "root",
+                  "pending_charges": 5.42
+                }
+              },
+              "status_code": 200
+            }
+          ]
         },
         {
           "name": "delete-instance",
           "display_name": "Delete Instance",
+          "description": "Delete an Instance.",
           "http_method": "DELETE",
           "path": "/instances/{instance-id}",
-          "description": "Delete Instance",
           "parameters": [
             {
               "name": "instance-id",
               "display_name": "Instance ID",
-              "description": "The instance ID",
+              "description": "The Instance ID.",
               "location": "path",
               "type": {
                 "kind": "string"
@@ -237,15 +1705,15 @@
         },
         {
           "name": "start-instance",
-          "display_name": "Start instance",
+          "display_name": "Start Instance",
+          "description": "Start an Instance.",
           "http_method": "POST",
           "path": "/instances/{instance-id}/start",
-          "description": "Start instance",
           "parameters": [
             {
               "name": "instance-id",
               "display_name": "Instance ID",
-              "description": "The instance ID",
+              "description": "The Instance ID.",
               "location": "path",
               "type": {
                 "kind": "string"
@@ -262,14 +1730,14 @@
         {
           "name": "reboot-instance",
           "display_name": "Reboot Instance",
+          "description": "Reboot an Instance.",
           "http_method": "POST",
           "path": "/instances/{instance-id}/reboot",
-          "description": "Reboot Instance",
           "parameters": [
             {
               "name": "instance-id",
               "display_name": "Instance ID",
-              "description": "The instance ID",
+              "description": "The Instance ID.",
               "location": "path",
               "type": {
                 "kind": "string"
@@ -286,14 +1754,14 @@
         {
           "name": "halt-instance",
           "display_name": "Halt Instance",
+          "description": "Halt an Instance.",
           "http_method": "POST",
           "path": "/instances/{instance-id}/halt",
-          "description": "Halt Instance",
           "parameters": [
             {
               "name": "instance-id",
               "display_name": "Instance ID",
-              "description": "The instance ID",
+              "description": "The Instance ID.",
               "location": "path",
               "type": {
                 "kind": "string"

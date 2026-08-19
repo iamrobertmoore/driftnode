@@ -528,10 +528,12 @@ export async function verify(tempDir: string, targetDir: string): Promise<void> 
 
     console.log('✓ Verification complete');
   } catch (error) {
-    // Clean up temporary directory on any error
-    if (fs.existsSync(tempDir)) {
-      await fs.promises.rm(tempDir, { recursive: true, force: true });
-    }
+    // Cleanup is the caller's responsibility.
+    //
+    // The CLI created this directory and owns its lifecycle, including the
+    // --keep-temp escape hatch for diagnosing generation bugs. Cleaning up
+    // here as well meant the evidence was deleted before the flag could act
+    // on it, which is exactly the situation the flag exists for.
     throw error;
   }
 }

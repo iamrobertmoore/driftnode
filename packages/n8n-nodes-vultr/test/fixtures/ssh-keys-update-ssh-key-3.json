@@ -1,0 +1,14 @@
+{
+  "request": {
+    "method": "PATCH",
+    "path": "/ssh-keys/{ssh-key-id}",
+    "parameters": {
+      "name": "Example SSH Key",
+      "ssh_key": "ssh-rsa AA... user@example.com"
+    }
+  },
+  "response": {
+    "status": 204,
+    "body": null
+  }
+}

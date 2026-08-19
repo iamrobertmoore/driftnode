@@ -15,6 +15,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import * as fs from 'fs';
 import * as path from 'path';
+import * as ts from 'typescript';
 import { emit } from '../src/emit.js';
 import {
   IntermediateRepresentation,
@@ -463,10 +464,13 @@ describe('Emit Stage', () => {
       expect(nodeContent).toMatch(/displayName: 'Operation'[\s\S]*?resource: \['instances'\]/);
       
       // Should include both operations
-      expect(nodeContent).toContain("name: 'List Instances'");
+      // Operation labels have the resource name stripped: n8n composes the
+      // action from resource + operation, so "Instances" + "List Instances"
+      // would render as "Instances List Instances".
+      expect(nodeContent).toContain("name: 'List'");
       expect(nodeContent).toContain("value: 'list'");
       expect(nodeContent).toContain("description: 'List all instances'");
-      expect(nodeContent).toContain("name: 'Create Instance'");
+      expect(nodeContent).toContain("name: 'Create'");
       expect(nodeContent).toContain("value: 'create'");
       expect(nodeContent).toContain("description: 'Create new instance'");
     });
@@ -597,6 +601,87 @@ describe('Emit Stage', () => {
       expect(nodeContent).toContain("'us-east'");
       expect(nodeContent).toContain("'us-west'");
       expect(nodeContent).toContain("'eu-central'");
+
+      // And it must still parse. An earlier version of the enum generator
+      // returned a field that already included its closing brace, and the
+      // caller appended another one, terminating the properties array early
+      // and breaking the entire file. Every assertion above still passed,
+      // because they only check for substrings.
+      expectParses(nodeContent, 'TestVendor.node.ts');
+    });
+
+    it('should emit syntactically valid TypeScript for every parameter shape', async () => {
+      // One operation carrying every parameter shape the generator handles,
+      // so a template that breaks on any of them is caught here rather than
+      // by tsc during a real generation run.
+      const ir = createSampleIR({
+        parameters: [
+          {
+            name: 'plan_type',
+            display_name: 'Plan Type',
+            description: "Filter by type. Vultr's docs use apostrophes here.",
+            location: 'query',
+            type: { kind: 'string' },
+            required: false,
+            default_value: 'all',
+            constraints: { enum: ['all', 'voc-s', 'vcg'] },
+          },
+          {
+            name: 'per_page',
+            display_name: 'Per Page',
+            description: 'Number of items requested per page.',
+            location: 'query',
+            type: { kind: 'integer' },
+            required: false,
+            constraints: { minimum: 1, maximum: 500 },
+          },
+          {
+            name: 'label',
+            display_name: 'Label',
+            description: 'A "quoted" label with\na newline in it.',
+            location: 'body',
+            type: { kind: 'string' },
+            required: true,
+            constraints: { min_length: 1, max_length: 255 },
+          },
+          {
+            name: 'enabled',
+            display_name: 'Enabled',
+            description: 'Whether the thing is on.',
+            location: 'body',
+            type: { kind: 'boolean' },
+            required: false,
+            default_value: false,
+          },
+          {
+            name: 'tags',
+            display_name: 'Tags',
+            description: 'A list of tags.',
+            location: 'body',
+            type: { kind: 'array', items_type: { kind: 'string' } },
+            required: false,
+          },
+        ],
+      });
+
+      const config: GeneratorConfig = {
+        vendor: 'test-vendor',
+        documentation: { type: 'url', url: 'https://example.com/docs' },
+      };
+
+      await emit(ir, config, testTempDir);
+
+      for (const relativePath of [
+        path.join('nodes', 'TestVendor', 'TestVendor.node.ts'),
+        path.join('credentials', 'TestVendorApi.credentials.ts'),
+        path.join('test', 'unit.test.ts'),
+        path.join('test', 'conformance.test.ts'),
+        path.join('test', 'fixture-loader.ts'),
+      ]) {
+        const full = path.join(testTempDir, relativePath);
+        const content = await fs.promises.readFile(full, 'utf-8');
+        expectParses(content, relativePath);
+      }
     });
 
     it('should add min/max validation rules for strings', async () => {
@@ -1328,7 +1413,10 @@ describe('Emit Stage', () => {
       const packageJson = JSON.parse(await fs.promises.readFile(packageJsonPath, 'utf-8'));
 
       expect(packageJson.scripts).toBeDefined();
-      expect(packageJson.scripts.build).toBe('tsc');
+      // Build also copies non-TypeScript assets, because tsc does not and
+      // n8n resolves the node icon relative to the compiled output.
+      expect(packageJson.scripts.build).toContain('tsc');
+      expect(packageJson.scripts.build).toContain('cpSync');
       expect(packageJson.scripts.test).toBe('vitest run');
       expect(packageJson.scripts.typecheck).toBe('tsc --noEmit');
     });
@@ -1346,8 +1434,13 @@ describe('Emit Stage', () => {
       const packageJson = JSON.parse(await fs.promises.readFile(packageJsonPath, 'utf-8'));
 
       expect(packageJson.n8n).toBeDefined();
-      expect(packageJson.n8n.usableAsTool).toBe(true);
       expect(packageJson.n8n.n8nNodesApiVersion).toBe(1);
+      // usableAsTool belongs on the node's description, not the n8n block.
+      const nodeSource = await fs.promises.readFile(
+        path.join(testTempDir, 'nodes', 'TestVendor', 'TestVendor.node.ts'),
+        'utf-8'
+      );
+      expect(nodeSource).toContain('usableAsTool: true');
     });
 
     it('should reference credentials file in n8n metadata', async () => {
@@ -1362,10 +1455,11 @@ describe('Emit Stage', () => {
       const packageJsonPath = path.join(testTempDir, 'package.json');
       const packageJson = JSON.parse(await fs.promises.readFile(packageJsonPath, 'utf-8'));
 
+      // n8n requires arrays of path strings, not objects. It calls
+      // path.join on each entry and fails to load the package otherwise.
       expect(packageJson.n8n.credentials).toBeDefined();
       expect(packageJson.n8n.credentials).toHaveLength(1);
-      expect(packageJson.n8n.credentials[0].className).toBe('TestVendorApi');
-      expect(packageJson.n8n.credentials[0].sourcePath).toBe('dist/credentials/TestVendorApi.credentials.js');
+      expect(packageJson.n8n.credentials[0]).toBe('dist/credentials/TestVendorApi.credentials.js');
     });
 
     it('should reference node file in n8n metadata', async () => {
@@ -1382,8 +1476,7 @@ describe('Emit Stage', () => {
 
       expect(packageJson.n8n.nodes).toBeDefined();
       expect(packageJson.n8n.nodes).toHaveLength(1);
-      expect(packageJson.n8n.nodes[0].className).toBe('TestVendor');
-      expect(packageJson.n8n.nodes[0].sourcePath).toBe('dist/nodes/TestVendor/TestVendor.node.js');
+      expect(packageJson.n8n.nodes[0]).toBe('dist/nodes/TestVendor/TestVendor.node.js');
     });
 
     it('should handle multi-word vendor names correctly', async () => {
@@ -1402,12 +1495,12 @@ describe('Emit Stage', () => {
       expect(packageJson.name).toBe('n8n-nodes-digital-ocean');
       
       // Class names should be PascalCase
-      expect(packageJson.n8n.credentials[0].className).toBe('DigitalOceanApi');
-      expect(packageJson.n8n.nodes[0].className).toBe('DigitalOcean');
+      expect(packageJson.n8n.credentials[0]).toContain('DigitalOceanApi');
+      expect(packageJson.n8n.nodes[0]).toContain('DigitalOcean');
       
       // File paths should use PascalCase
-      expect(packageJson.n8n.credentials[0].sourcePath).toBe('dist/credentials/DigitalOceanApi.credentials.js');
-      expect(packageJson.n8n.nodes[0].sourcePath).toBe('dist/nodes/DigitalOcean/DigitalOcean.node.js');
+      expect(packageJson.n8n.credentials[0]).toBe('dist/credentials/DigitalOceanApi.credentials.js');
+      expect(packageJson.n8n.nodes[0]).toBe('dist/nodes/DigitalOcean/DigitalOcean.node.js');
     });
 
     it('should include documentation URL from IR source', async () => {
@@ -1904,3 +1997,40 @@ function createSampleIR(overrides: { parameters?: Parameter[] } = {}): Intermedi
       }
     });
   });
+
+/**
+ * Assert that emitted source parses as TypeScript.
+ *
+ * Substring assertions cannot tell a valid file from a broken one: generated
+ * code can contain every expected fragment and still fail to compile because
+ * a template produced an unbalanced brace. Parsing is the check that actually
+ * holds.
+ */
+function expectParses(content: string, label: string): void {
+  const sourceFile = ts.createSourceFile(
+    label,
+    content,
+    ts.ScriptTarget.ES2022,
+    true,
+    ts.ScriptKind.TS
+  );
+
+  // parseDiagnostics is internal but stable, and it is the only way to get
+  // syntax errors out of a standalone SourceFile without a full Program.
+  const diagnostics =
+    (sourceFile as unknown as { parseDiagnostics?: ts.Diagnostic[] })
+      .parseDiagnostics ?? [];
+
+  if (diagnostics.length > 0) {
+    const first = diagnostics[0]!;
+    const { line, character } = sourceFile.getLineAndCharacterOfPosition(
+      first.start ?? 0
+    );
+    const message = ts.flattenDiagnosticMessageText(first.messageText, ' ');
+    throw new Error(
+      `${label} is not valid TypeScript: ${message} ` +
+        `(line ${line + 1}, column ${character + 1}). ` +
+        `${diagnostics.length} syntax error(s) total.`
+    );
+  }
+}

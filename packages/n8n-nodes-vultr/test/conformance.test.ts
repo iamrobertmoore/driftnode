@@ -141,14 +141,14 @@ describe('Conformance Test', () => {
 
 /**
  * This test file documents excluded operations:
- * - Create SSH key: POST operation excluded for safety
  * - Get SSH Key: requires specific resource ID
  * - Update SSH Key: PATCH operation excluded for safety
  * - Delete SSH Key: DELETE operation excluded for safety
+ * - Create SSH Key: POST operation excluded for safety
  * - Create Instance: POST operation excluded for safety
  * - Get Instance: requires specific resource ID
  * - Delete Instance: DELETE operation excluded for safety
- * - Start instance: POST operation excluded for safety
+ * - Start Instance: POST operation excluded for safety
  * - Reboot Instance: POST operation excluded for safety
  * - Halt Instance: POST operation excluded for safety
  */

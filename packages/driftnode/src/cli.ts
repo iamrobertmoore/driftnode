@@ -36,19 +36,27 @@ async function main(): Promise<void> {
     process.exit(1);
   }
 
-  // Check for --no-cache flag
-  let noCache = false;
-  let configPath = args[0];
-  
-  if (args[0] === '--no-cache') {
-    noCache = true;
-    if (!args[1]) {
-      console.error('Error: No configuration file specified\n');
-      console.error('Usage: driftnode [--no-cache] <config-file.json>\n');
-      console.error('Example: driftnode --no-cache config/vultr.json');
-      process.exit(1);
-    }
-    configPath = args[1];
+  // Parse flags. Order does not matter; the last non-flag argument is the
+  // configuration file.
+  const flags = args.filter((a) => a.startsWith('--'));
+  const positional = args.filter((a) => !a.startsWith('--'));
+
+  const noCache = flags.includes('--no-cache');
+
+  // --keep-temp leaves the working directory in place when a run fails.
+  //
+  // Emitting nothing on failure is correct: a half-written package that looks
+  // generated is worse than no package. But it also means a generation bug
+  // deletes its own evidence, so this exists purely for diagnosis.
+  const keepTemp = flags.includes('--keep-temp');
+
+  const configPath = positional[0];
+
+  if (!configPath) {
+    console.error('Error: No configuration file specified\n');
+    console.error('Usage: driftnode [--no-cache] [--keep-temp] <config-file.json>\n');
+    console.error('Example: driftnode examples/vultr.json');
+    process.exit(1);
   }
 
   try {
@@ -120,8 +128,10 @@ async function main(): Promise<void> {
       
       process.exit(0);
     } catch (error) {
-      // Clean up temporary directory on error
-      if (fs.existsSync(tempDir)) {
+      if (keepTemp) {
+        console.error(`\nWorking directory kept for inspection: ${tempDir}`);
+      } else if (fs.existsSync(tempDir)) {
+        // Clean up temporary directory on error
         await fs.promises.rm(tempDir, { recursive: true, force: true });
       }
       throw error;

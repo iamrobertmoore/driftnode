@@ -183,7 +183,10 @@ describe('emitUnitTests (Task 11.7)', () => {
 
     // Check that file has proper imports
     const content = await fs.promises.readFile(unitTestPath, 'utf-8');
-    expect(content).toContain("import { describe, it, expect } from 'vitest'");
+    // test() is imported alongside it() because the fixture-backed block uses it.
+    expect(content).toContain("from 'vitest'");
+    expect(content).toContain('describe');
+    expect(content).toContain('expect');
     expect(content).toContain("import { loadFixture, fixtureExists } from './fixture-loader'");
   });
 

@@ -253,7 +253,11 @@ describe('extract', () => {
       });
       expect(result.resources).toHaveLength(2);
       expect(result.resources.map(r => r.name).sort()).toEqual(['instances', 'ssh-keys']);
-      expect(result.source.path).toBe(path.resolve('/docs/api.html'));
+      // Relative to cwd, not absolute: the IR is committed and published, so
+      // an absolute path would leak the generating machine's layout.
+      expect(result.source.path).toBe(
+        path.relative(process.cwd(), path.resolve('/docs/api.html'))
+      );
     });
 
     it('should union operations for the same resource across chunks', async () => {
