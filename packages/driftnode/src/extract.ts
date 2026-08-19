@@ -34,16 +34,65 @@ export async function extract(
 
 
   try {
-    // Extract partial IRs from each chunk
-    const partialIRs: PartialIR[] = [];
+    // Extract partial IRs from each chunk with bounded concurrency
+    // Task 3.3: Implement bounded concurrency pool
+    // Task 5.1: Track total extraction time
+    const extractionStartTime = Date.now();
+    const concurrency = config.concurrency ?? 4; // Default to 4 concurrent extractions
+    const partialIRs: PartialIR[] = new Array(chunks.length);
     
-    for (let i = 0; i < chunks.length; i++) {
-      const chunk = chunks[i]!; // Array indexed within bounds
-      const outputPath = path.join(tempDir, `ir-chunk-${i}.json`);
+    // Process chunks in batches to limit concurrency
+    for (let batchStart = 0; batchStart < chunks.length; batchStart += concurrency) {
+      const batchEnd = Math.min(batchStart + concurrency, chunks.length);
+      const batch = chunks.slice(batchStart, batchEnd);
       
-      const partialIR = await extractChunk(chunk, outputPath, i);
-      partialIRs.push(partialIR);
+      // Start all chunks in this batch concurrently
+      const batchPromises = batch.map(async (chunk, batchIndex) => {
+        const chunkIndex = batchStart + batchIndex;
+        const outputPath = path.join(tempDir, `ir-chunk-${chunkIndex}.json`);
+        
+        const started = Date.now();
+        process.stdout.write(`  chunk ${chunkIndex + 1}/${chunks.length}...`);
+        
+        try {
+          const partialIR = await extractChunk(
+            chunk,
+            outputPath,
+            chunkIndex,
+            config.effort,
+            config.extractionTimeoutSeconds
+          );
+          
+          const elapsed = ((Date.now() - started) / 1000).toFixed(1);
+          const found = partialIR.resources?.length ?? 0;
+          process.stdout.write(
+            ` ${elapsed}s, ${found} resource${found === 1 ? '' : 's'}\n`
+          );
+          
+          return { chunkIndex, partialIR };
+        } catch (error) {
+          // On failure, log error and rethrow to cancel remaining chunks
+          const elapsed = ((Date.now() - started) / 1000).toFixed(1);
+          process.stdout.write(` ${elapsed}s, FAILED\n`);
+          throw error;
+        }
+      });
+      
+      // Wait for all chunks in this batch to complete
+      // If any chunk fails, this will throw and cancel remaining batches
+      const batchResults = await Promise.all(batchPromises);
+      
+      // Store results in correct index order
+      for (const { chunkIndex, partialIR } of batchResults) {
+        partialIRs[chunkIndex] = partialIR;
+      }
     }
+    
+    const extractionEndTime = Date.now();
+    const totalElapsedSeconds = ((extractionEndTime - extractionStartTime) / 1000).toFixed(1);
+    
+    // Task 5.2: Output extraction summary
+    process.stdout.write(`\nExtraction complete: ${totalElapsedSeconds}s total, ${chunks.length} chunk${chunks.length === 1 ? '' : 's'} processed\n`);
 
     // Merge partial IRs into complete IR
     const mergedIR = mergePartialIRs(partialIRs, config);
@@ -82,13 +131,15 @@ export async function extract(
 async function extractChunk(
   chunk: DocumentChunk,
   outputPath: string,
-  chunkIndex: number
+  chunkIndex: number,
+  effort?: GeneratorConfig['effort'],
+  timeoutSeconds?: number
 ): Promise<PartialIR> {
   // Build extraction prompt
   const prompt = buildExtractionPrompt(chunk.content, outputPath);
 
-  // Invoke kiro-cli
-  const result = await invokeKiroCli(prompt, chunkIndex);
+  // Invoke kiro-cli (Task 1.3: pass effort, Task 4.3: pass timeout)
+  const result = await invokeKiroCli(prompt, chunkIndex, effort, timeoutSeconds);
 
   if (result.exitCode !== 0) {
     const error: GeneratorError = {
@@ -147,11 +198,26 @@ async function extractChunk(
  */
 async function invokeKiroCli(
   prompt: string,
-  chunkIndex: number
+  chunkIndex: number,
+  effort?: GeneratorConfig['effort'],
+  timeoutSeconds?: number
 ): Promise<{ exitCode: number; stdout: string; stderr: string }> {
   return new Promise((resolve, reject) => {
-    // Check if kiro-cli exists in PATH
-    const child = spawn('kiro-cli', ['chat', '--no-interactive', '--trust-tools=read,write'], {
+    // Build arguments: Task 1.3 - add --effort flag (default to 'low')
+    const effectiveEffort = effort ?? 'low';
+    const args = [
+      'chat',
+      '--no-interactive',
+      '--trust-tools=read,write',
+      '--effort',
+      effectiveEffort,
+      prompt
+    ];
+
+    // The prompt must be passed as a positional argument. `--no-interactive`
+    // requires one, and with no prompt argument kiro-cli waits rather than
+    // reading a prompt from stdin, which manifests as a timeout on every chunk.
+    const child = spawn('kiro-cli', args, {
       stdio: ['pipe', 'pipe', 'pipe'],
     });
 
@@ -159,7 +225,8 @@ async function invokeKiroCli(
     let stderr = '';
     let timedOut = false;
 
-    // Set 5-minute timeout
+    // Task 4.3: Use configurable timeout (default to 600 seconds / 10 minutes)
+    const effectiveTimeout = timeoutSeconds ?? 600;
     const timeout = setTimeout(() => {
       timedOut = true;
       child.kill('SIGTERM');
@@ -170,7 +237,7 @@ async function invokeKiroCli(
           child.kill('SIGKILL');
         }
       }, 5000);
-    }, 5 * 60 * 1000); // 5 minutes
+    }, effectiveTimeout * 1000);
 
     child.stdout?.on('data', (data) => {
       stdout += data.toString();
@@ -201,7 +268,8 @@ async function invokeKiroCli(
         const error: GeneratorError = {
           stage: 'extract',
           type: 'kiro_timeout',
-          timeout_seconds: 300,
+          timeout_seconds: effectiveTimeout,
+          chunk_index: chunkIndex, // Task 4.4: include chunk index
         };
         reject(error);
         return;
@@ -214,8 +282,8 @@ async function invokeKiroCli(
       });
     });
 
-    // Write prompt to stdin
-    child.stdin?.write(prompt);
+    // Close stdin immediately. The prompt is an argument, and leaving stdin
+    // open would keep the subprocess waiting for input that never arrives.
     child.stdin?.end();
   });
 }

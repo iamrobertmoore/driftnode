@@ -493,6 +493,43 @@ export interface GeneratorConfig {
    * Vendor documentation sites commonly reject requests with no User-Agent.
    */
   userAgent?: string;
+
+  /**
+   * Kiro reasoning effort level for extraction.
+   * Controls how much computational effort Kiro spends on understanding and extracting API details.
+   * Higher effort levels produce more accurate extractions but take longer.
+   * If omitted, Kiro uses its default effort level.
+   */
+  effort?: 'low' | 'medium' | 'high' | 'xhigh' | 'max';
+
+  /**
+   * Number of characters per documentation chunk.
+   * Large documentation is split into chunks for parallel extraction.
+   * Larger chunks provide more context but may exceed model token limits.
+   * If omitted, defaults to a sensible value based on the model's context window.
+   */
+  chunkSize?: number;
+
+  /**
+   * Number of overlapping characters between adjacent chunks.
+   * Overlap ensures that information spanning chunk boundaries is not lost.
+   * If omitted, defaults to 10% of chunkSize.
+   */
+  chunkOverlap?: number;
+
+  /**
+   * Maximum number of chunks to extract in parallel.
+   * Higher values speed up extraction but may hit rate limits or exhaust system resources.
+   * If omitted, defaults to a conservative value (e.g., 3).
+   */
+  concurrency?: number;
+
+  /**
+   * Timeout in seconds for each chunk extraction.
+   * If a chunk extraction exceeds this duration, it fails and is retried.
+   * If omitted, defaults to 300 seconds (5 minutes).
+   */
+  extractionTimeoutSeconds?: number;
 }
 
 /**

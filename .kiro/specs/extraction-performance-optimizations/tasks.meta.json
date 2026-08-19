@@ -1,0 +1,178 @@
+{
+  "pbtResults": {},
+  "executionHistory": {
+    "1.1 Add effort field to GeneratorConfig type": [
+      {
+        "executionId": "ccb3268e-b6f2-47ed-ada1-223dd492f791",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1787125136818
+      },
+      {
+        "executionId": "ccb3268e-b6f2-47ed-ada1-223dd492f791",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1787125148090
+      },
+      {
+        "executionId": "ccb3268e-b6f2-47ed-ada1-223dd492f791",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1787125211584
+      }
+    ],
+    "1.2 Add effort validation to config validation": [
+      {
+        "executionId": "ccb3268e-b6f2-47ed-ada1-223dd492f791",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1787125136976
+      }
+    ],
+    "1.3 Pass effort flag to kiro-cli": [
+      {
+        "executionId": "ccb3268e-b6f2-47ed-ada1-223dd492f791",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1787125137104
+      }
+    ],
+    "2.1 Add chunk size fields to GeneratorConfig": [
+      {
+        "executionId": "ccb3268e-b6f2-47ed-ada1-223dd492f791",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1787125137148
+      },
+      {
+        "executionId": "ccb3268e-b6f2-47ed-ada1-223dd492f791",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1787125148790
+      },
+      {
+        "executionId": "ccb3268e-b6f2-47ed-ada1-223dd492f791",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1787125212355
+      }
+    ],
+    "2.2 Update chunk function to accept configurable parameters": [
+      {
+        "executionId": "ccb3268e-b6f2-47ed-ada1-223dd492f791",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1787125137195
+      }
+    ],
+    "2.3 Add chunk size validation": [
+      {
+        "executionId": "ccb3268e-b6f2-47ed-ada1-223dd492f791",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1787125137238
+      }
+    ],
+    "2.4 Wire chunk configuration from ingest to chunk function": [
+      {
+        "executionId": "ccb3268e-b6f2-47ed-ada1-223dd492f791",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1787125137273
+      }
+    ],
+    "3.1 Add concurrency field to GeneratorConfig": [
+      {
+        "executionId": "ccb3268e-b6f2-47ed-ada1-223dd492f791",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1787125137313
+      },
+      {
+        "executionId": "ccb3268e-b6f2-47ed-ada1-223dd492f791",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1787125149615
+      },
+      {
+        "executionId": "ccb3268e-b6f2-47ed-ada1-223dd492f791",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1787125213128
+      }
+    ],
+    "3.2 Add concurrency validation": [
+      {
+        "executionId": "ccb3268e-b6f2-47ed-ada1-223dd492f791",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1787125137368
+      }
+    ],
+    "3.3 Implement bounded concurrency pool in extract function": [
+      {
+        "executionId": "ccb3268e-b6f2-47ed-ada1-223dd492f791",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1787125137421
+      }
+    ],
+    "3.4 Implement cancellation on chunk failure": [
+      {
+        "executionId": "ccb3268e-b6f2-47ed-ada1-223dd492f791",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1787125137502
+      }
+    ],
+    "3.5 Update progress output to show completion order": [
+      {
+        "executionId": "ccb3268e-b6f2-47ed-ada1-223dd492f791",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1787125137549
+      }
+    ],
+    "4.1 Add timeout field to GeneratorConfig": [
+      {
+        "executionId": "ccb3268e-b6f2-47ed-ada1-223dd492f791",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1787125137585
+      },
+      {
+        "executionId": "ccb3268e-b6f2-47ed-ada1-223dd492f791",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1787125150473
+      },
+      {
+        "executionId": "ccb3268e-b6f2-47ed-ada1-223dd492f791",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1787125213984
+      }
+    ],
+    "4.2 Add timeout validation": [
+      {
+        "executionId": "ccb3268e-b6f2-47ed-ada1-223dd492f791",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1787125137628
+      }
+    ],
+    "4.3 Update invokeKiroCli timeout": [
+      {
+        "executionId": "ccb3268e-b6f2-47ed-ada1-223dd492f791",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1787125137680
+      }
+    ],
+    "4.4 Improve timeout error message": [
+      {
+        "executionId": "ccb3268e-b6f2-47ed-ada1-223dd492f791",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1787125137752
+      }
+    ],
+    "5.1 Track total extraction time": [
+      {
+        "executionId": "ccb3268e-b6f2-47ed-ada1-223dd492f791",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1787125137799
+      }
+    ],
+    "5.2 Output extraction summary": [
+      {
+        "executionId": "ccb3268e-b6f2-47ed-ada1-223dd492f791",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1787125137854
+      }
+    ],
+    "6. Checkpoint - Ensure all tests pass": [
+      {
+        "executionId": "ccb3268e-b6f2-47ed-ada1-223dd492f791",
+        "chatSessionId": "sess_adc76e26-d0da-4be9-868f-a1f6a6518612",
+        "timestamp": 1787125137913
+      }
+    ]
+  }
+}

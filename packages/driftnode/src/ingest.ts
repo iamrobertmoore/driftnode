@@ -51,8 +51,12 @@ export async function ingest(
   // Normalize based on content type
   const normalized = await normalize(content, source);
   
-  // Chunk if necessary
-  return chunk(normalized);
+  // Chunk if necessary (Task 2.4: pass chunk configuration)
+  return chunk(
+    normalized,
+    config?.chunkSize,
+    config?.chunkOverlap
+  );
 }
 
 /**
@@ -448,18 +452,26 @@ function decodeHtmlEntities(text: string): string {
 }
 
 /**
- * Split documentation into chunks if it exceeds 50,000 characters
- * - Guarantee minimum chunk size of 25,000 characters (MAX_CHUNK_SIZE / 2)
- * - Guarantee minimum forward progress of 49,500 characters per iteration
+ * Split documentation into chunks if it exceeds the maximum chunk size
+ * - Guarantee minimum chunk size of chunkSize / 2
+ * - Guarantee minimum forward progress of chunkSize - chunkOverlap per iteration
  * - Preserve complete sentences
  * - Preserve complete code blocks
- * - Add 500 characters of overlap
+ * - Add overlap for context
+ * 
+ * @param content - Normalized documentation content
+ * @param chunkSize - Maximum characters per chunk (default: 15,000)
+ * @param chunkOverlap - Characters of overlap between chunks (default: 150)
  */
-function chunk(content: string): DocumentChunk[] {
-  const MAX_CHUNK_SIZE = 50000;
-  const OVERLAP_SIZE = 500;
-  const MIN_CHUNK_SIZE = MAX_CHUNK_SIZE / 2; // 25,000 characters
-  const MIN_ADVANCEMENT = MAX_CHUNK_SIZE - OVERLAP_SIZE; // 49,500 characters
+function chunk(
+  content: string,
+  chunkSize: number = 15000,
+  chunkOverlap: number = 150
+): DocumentChunk[] {
+  const MAX_CHUNK_SIZE = chunkSize;
+  const OVERLAP_SIZE = chunkOverlap;
+  const MIN_CHUNK_SIZE = MAX_CHUNK_SIZE / 2;
+  const MIN_ADVANCEMENT = MAX_CHUNK_SIZE - OVERLAP_SIZE;
   
   if (content.length <= MAX_CHUNK_SIZE) {
     return [{
@@ -477,7 +489,7 @@ function chunk(content: string): DocumentChunk[] {
     
     // If not at the end, find a good break point
     if (chunkEnd < content.length) {
-      chunkEnd = findChunkBoundary(content, position, chunkEnd);
+      chunkEnd = findChunkBoundary(content, position, chunkEnd, MAX_CHUNK_SIZE);
       
       // Enforce minimum chunk size: if chunkEnd is too close to position,
       // force it to at least MIN_CHUNK_SIZE
@@ -508,12 +520,21 @@ function chunk(content: string): DocumentChunk[] {
 
 /**
  * Find a good chunk boundary that preserves sentences and code blocks
- * Never returns a position less than start + MAX_CHUNK_SIZE / 2 (25,000 chars)
+ * Never returns a position less than start + maxChunkSize / 2
  * to guarantee minimum forward progress
+ * 
+ * @param content - Full document content
+ * @param start - Start position of current chunk
+ * @param idealEnd - Ideal end position (start + maxChunkSize)
+ * @param maxChunkSize - Maximum chunk size in characters
  */
-function findChunkBoundary(content: string, start: number, idealEnd: number): number {
-  const MAX_CHUNK_SIZE = 50000;
-  const MIN_BOUNDARY = start + (MAX_CHUNK_SIZE / 2); // 25,000 chars minimum
+function findChunkBoundary(
+  content: string,
+  start: number,
+  idealEnd: number,
+  maxChunkSize: number
+): number {
+  const MIN_BOUNDARY = start + (maxChunkSize / 2);
   
   // Check if we're inside a code block
   const beforeIdealEnd = content.slice(start, idealEnd);

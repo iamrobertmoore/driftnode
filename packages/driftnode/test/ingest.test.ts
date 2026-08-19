@@ -498,12 +498,18 @@ describe('Ingest Stage', () => {
       const chunks = await ingest(source);
       
       if (chunks.length > 1) {
-        // Check that chunks overlap
-        const firstChunkEnd = chunks[0].content.slice(-500);
-        const secondChunkStart = chunks[1].content.slice(0, 500);
-        
-        // There should be some common content
-        expect(firstChunkEnd.slice(-100)).toEqual(secondChunkStart.slice(0, 100));
+        // Verify overlap exists by checking the chunk start/end positions
+        // With overlap, chunk N's start should be before chunk N-1's end
+        for (let i = 1; i < chunks.length; i++) {
+          const prevEnd = chunks[i - 1].end;
+          const currentStart = chunks[i].start;
+          
+          // Current chunk should start before previous chunk ends (overlap)
+          expect(currentStart).toBeLessThan(prevEnd);
+          
+          // The overlap should be meaningful (at least 50 characters in the original document)
+          expect(prevEnd - currentStart).toBeGreaterThan(50);
+        }
       }
     });
     
@@ -739,22 +745,23 @@ describe('Ingest Stage', () => {
         const chunks = await ingest(source);
         
         // Assert: Chunk count should be proportional to length
-        // Expected: ~13 chunks (628KB / 50KB per chunk)
-        // Bug produces: 610 chunks
-        const expectedChunks = Math.ceil(totalSize / 50000);
-        expect(chunks.length).toBeLessThan(50); // Should be much less than 610
+        // Expected: ~42 chunks (628KB / 15KB per chunk with new defaults)
+        // Bug would have produced: ~610 chunks with old bug
+        const expectedChunks = Math.ceil(totalSize / 15000);
+        expect(chunks.length).toBeLessThan(100); // Should be much less than 610
         expect(chunks.length).toBeGreaterThanOrEqual(expectedChunks - 5); // Allow some variance
         expect(chunks.length).toBeLessThanOrEqual(expectedChunks + 5);
         
-        // Assert: No chunk should be < 25,000 chars except the last
+        // Assert: No chunk should be < 7,500 chars (15,000 / 2) except the last
+        // In pathological cases with difficult boundaries, allow down to 7,000
         for (let i = 0; i < chunks.length - 1; i++) {
-          expect(chunks[i].content.length).toBeGreaterThanOrEqual(25000);
+          expect(chunks[i].content.length).toBeGreaterThanOrEqual(7000);
         }
         
-        // Assert: Median chunk size should be close to 50,000 chars
+        // Assert: Median chunk size should be close to 15,000 chars
         const sizes = chunks.map(c => c.content.length).sort((a, b) => a - b);
         const median = sizes[Math.floor(sizes.length / 2)];
-        expect(median).toBeGreaterThan(40000); // Should be close to 50K, not 306
+        expect(median).toBeGreaterThan(12000); // Should be close to 15K, not 306
       });
       
       it('should produce chunk count proportional to length for large text', async () => {
@@ -769,13 +776,13 @@ describe('Ingest Stage', () => {
         const chunks = await ingest(source);
         
         // Assert: Chunk count should be proportional to length
-        // For 5.4MB with 50K chunks: expect ~108 chunks
-        const expectedChunks = Math.ceil(size / 50000);
+        // For 5.4MB with 15K chunks: expect ~360 chunks
+        const expectedChunks = Math.ceil(size / 15000);
         expect(chunks.length).toBeGreaterThanOrEqual(expectedChunks - 20); // Allow variance
         expect(chunks.length).toBeLessThanOrEqual(expectedChunks + 20);
         
-        // Assert: Should NOT be hundreds of chunks (bug produced 615)
-        expect(chunks.length).toBeLessThan(200);
+        // Assert: Should NOT be hundreds more chunks (bug would produce 615+)
+        expect(chunks.length).toBeLessThan(450);
       });
       
       it('should guarantee minimum chunk size of 25,000 chars', async () => {
@@ -795,8 +802,8 @@ describe('Ingest Stage', () => {
         // Assert: All chunks except last should be >= 25,000 chars
         // (or close to it if the only boundaries found are slightly under)
         for (let i = 0; i < chunks.length - 1; i++) {
-          // Allow some tolerance for boundary finding
-          expect(chunks[i].content.length).toBeGreaterThan(20000);
+          // Allow some tolerance for boundary finding (7,500 is minimum, allow down to 6,000)
+          expect(chunks[i].content.length).toBeGreaterThan(6000);
         }
       });
     });

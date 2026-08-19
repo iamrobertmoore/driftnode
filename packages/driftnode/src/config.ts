@@ -91,12 +91,87 @@ export async function loadConfig(configPath: string): Promise<GeneratorConfig> {
     );
   }
 
+  // Validate effort field (Task 1.2)
+  if (config.effort !== undefined) {
+    const validEfforts = ['low', 'medium', 'high', 'xhigh', 'max'];
+    if (typeof config.effort !== 'string' || !validEfforts.includes(config.effort)) {
+      throw new Error(
+        `Configuration field "effort" must be one of: ${validEfforts.join(', ')}\n` +
+        `Found: ${config.effort}`
+      );
+    }
+  }
+
+  // Validate chunkSize (Task 2.3)
+  if (config.chunkSize !== undefined) {
+    if (typeof config.chunkSize !== 'number' || config.chunkSize < 1000) {
+      throw new Error(
+        `Configuration field "chunkSize" must be a number of at least 1000 characters.\n` +
+        `Found: ${config.chunkSize}`
+      );
+    }
+  }
+
+  // Validate chunkOverlap (Task 2.3)
+  if (config.chunkOverlap !== undefined) {
+    if (typeof config.chunkOverlap !== 'number') {
+      throw new Error(
+        `Configuration field "chunkOverlap" must be a number.\n` +
+        `Found: ${config.chunkOverlap}`
+      );
+    }
+    
+    // If chunkSize is also provided, validate chunkOverlap < chunkSize
+    const effectiveChunkSize = config.chunkSize ?? 15000; // Use default if not provided
+    if (config.chunkOverlap >= effectiveChunkSize) {
+      throw new Error(
+        `Configuration field "chunkOverlap" must be less than chunkSize.\n` +
+        `chunkOverlap: ${config.chunkOverlap}, chunkSize: ${effectiveChunkSize}`
+      );
+    }
+  }
+
+  // Validate concurrency (Task 3.2)
+  if (config.concurrency !== undefined) {
+    if (typeof config.concurrency !== 'number' || config.concurrency < 1) {
+      throw new Error(
+        `Configuration field "concurrency" must be a number of at least 1.\n` +
+        `Found: ${config.concurrency}`
+      );
+    }
+  }
+
+  // Validate extractionTimeoutSeconds (Task 4.2)
+  if (config.extractionTimeoutSeconds !== undefined) {
+    if (typeof config.extractionTimeoutSeconds !== 'number' || config.extractionTimeoutSeconds < 30) {
+      throw new Error(
+        `Configuration field "extractionTimeoutSeconds" must be a number of at least 30 seconds.\n` +
+        `Found: ${config.extractionTimeoutSeconds}`
+      );
+    }
+  }
+
   return {
     vendor: config.vendor as string,
     documentation,
     include,
     ...(config.userAgent !== undefined
       ? { userAgent: config.userAgent as string }
+      : {}),
+    ...(config.effort !== undefined
+      ? { effort: config.effort as GeneratorConfig['effort'] }
+      : {}),
+    ...(config.chunkSize !== undefined
+      ? { chunkSize: config.chunkSize as number }
+      : {}),
+    ...(config.chunkOverlap !== undefined
+      ? { chunkOverlap: config.chunkOverlap as number }
+      : {}),
+    ...(config.concurrency !== undefined
+      ? { concurrency: config.concurrency as number }
+      : {}),
+    ...(config.extractionTimeoutSeconds !== undefined
+      ? { extractionTimeoutSeconds: config.extractionTimeoutSeconds as number }
       : {}),
   };
 }

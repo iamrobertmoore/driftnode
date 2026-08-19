@@ -124,6 +124,13 @@ The following requirements are documented for completeness but not implemented i
 6. IF Kiro_CLI exits with a non-zero code, THEN THE Generator SHALL terminate with an error message including the stderr output
 7. IF Kiro_CLI is not found in PATH, THEN THE Generator SHALL terminate with an error message stating Kiro_CLI must be installed
 8. IF Kiro_CLI does not respond within 5 minutes, THEN THE Generator SHALL terminate the subprocess and report a timeout error
+9. BEFORE setting the default effort level, THE effort setting SHALL be validated against extraction quality on a reference chunk:
+   - Run the same chunk (Vultr chunk 1) at default effort (baseline: 225.8s, 5 resources found)
+   - Run the same chunk at --effort low
+   - Compare resource count, parameter count, response detail completeness
+   - IF --effort low finds fewer resources OR significantly thinner detail, THEN default to 'medium' instead
+   - Document the measured comparison (time, resources found, quality assessment) in the spec
+   - Extraction accuracy is the product - a faster generator that reads documentation less carefully is a worse tool
 
 ### Requirement 6: Extract Base URL and Authentication
 

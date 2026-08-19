@@ -31,7 +31,7 @@ export type GeneratorError =
   // Extract stage errors (Requirements 5, 10)
   | { stage: 'extract'; type: 'kiro_not_found' }
   | { stage: 'extract'; type: 'kiro_not_authenticated' }
-  | { stage: 'extract'; type: 'kiro_timeout'; timeout_seconds: number }
+  | { stage: 'extract'; type: 'kiro_timeout'; timeout_seconds: number; chunk_index?: number }
   | { stage: 'extract'; type: 'kiro_failed'; exit_code: number; stderr: string }
   | { stage: 'extract'; type: 'ir_file_missing'; chunk_index: number; expected_path: string; stderr: string }
   | { stage: 'extract'; type: 'ir_file_empty'; chunk_index: number; path: string }
@@ -218,8 +218,11 @@ Run: kiro-cli login
 
 Then try again.`;
     case 'kiro_timeout':
+      const chunkInfo = error.chunk_index !== undefined
+        ? `\n  Chunk: ${error.chunk_index}`
+        : '';
       return `Error: Extraction timed out
-
+${chunkInfo}
   Timeout: ${error.timeout_seconds} seconds
 
 The extraction process did not complete within the timeout period. This may indicate an issue with kiro-cli or the documentation is too large.`;
