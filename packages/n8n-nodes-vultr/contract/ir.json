@@ -1,0 +1,316 @@
+{
+  "schema_version": "1.0.0",
+  "source": {
+    "path": "/Users/robertmoore/projects/Hackathons/ready-spec-ship/repo/examples/vultr-api-docs.html",
+    "content_hash": "33b9eb4b67207d5716178a0201d82334e4f629d3cbaa5cf51d6b71588b86ad53",
+    "extracted_at": "2026-08-19T15:32:29.611Z"
+  },
+  "base_url": "https://api.vultr.com/v2",
+  "auth": {
+    "type": "bearer_token",
+    "header_name": "Authorization"
+  },
+  "resources": [
+    {
+      "name": "regions",
+      "display_name": "Regions",
+      "description": "List available regions",
+      "operations": [
+        {
+          "name": "list-regions",
+          "display_name": "List Regions",
+          "http_method": "GET",
+          "path": "/regions",
+          "description": "List Regions",
+          "parameters": [],
+          "response_shape": {
+            "type": "object",
+            "undocumented": true
+          },
+          "examples": []
+        }
+      ]
+    },
+    {
+      "name": "plans",
+      "display_name": "Plans",
+      "description": "List available plans",
+      "operations": [
+        {
+          "name": "list-plans",
+          "display_name": "List Plans",
+          "http_method": "GET",
+          "path": "/plans",
+          "description": "List Plans",
+          "parameters": [],
+          "response_shape": {
+            "type": "object",
+            "undocumented": true
+          },
+          "examples": []
+        }
+      ]
+    },
+    {
+      "name": "ssh-keys",
+      "display_name": "SSH Keys",
+      "description": "Manage SSH keys",
+      "operations": [
+        {
+          "name": "list-ssh-keys",
+          "display_name": "List SSH Keys",
+          "http_method": "GET",
+          "path": "/ssh-keys",
+          "description": "List SSH Keys",
+          "parameters": [],
+          "response_shape": {
+            "type": "object",
+            "undocumented": true
+          },
+          "examples": []
+        },
+        {
+          "name": "create-ssh-key",
+          "display_name": "Create SSH key",
+          "http_method": "POST",
+          "path": "/ssh-keys",
+          "description": "Create SSH key",
+          "parameters": [],
+          "response_shape": {
+            "type": "object",
+            "undocumented": true
+          },
+          "examples": []
+        },
+        {
+          "name": "get-ssh-key",
+          "display_name": "Get SSH Key",
+          "http_method": "GET",
+          "path": "/ssh-keys/{ssh-key-id}",
+          "description": "Get SSH Key",
+          "parameters": [
+            {
+              "name": "ssh-key-id",
+              "display_name": "SSH Key ID",
+              "description": "The SSH key ID",
+              "location": "path",
+              "type": {
+                "kind": "string"
+              },
+              "required": true
+            }
+          ],
+          "response_shape": {
+            "type": "object",
+            "undocumented": true
+          },
+          "examples": []
+        },
+        {
+          "name": "update-ssh-key",
+          "display_name": "Update SSH Key",
+          "http_method": "PATCH",
+          "path": "/ssh-keys/{ssh-key-id}",
+          "description": "Update SSH Key",
+          "parameters": [
+            {
+              "name": "ssh-key-id",
+              "display_name": "SSH Key ID",
+              "description": "The SSH key ID",
+              "location": "path",
+              "type": {
+                "kind": "string"
+              },
+              "required": true
+            }
+          ],
+          "response_shape": {
+            "type": "object",
+            "undocumented": true
+          },
+          "examples": []
+        },
+        {
+          "name": "delete-ssh-key",
+          "display_name": "Delete SSH Key",
+          "http_method": "DELETE",
+          "path": "/ssh-keys/{ssh-key-id}",
+          "description": "Delete SSH Key",
+          "parameters": [
+            {
+              "name": "ssh-key-id",
+              "display_name": "SSH Key ID",
+              "description": "The SSH key ID",
+              "location": "path",
+              "type": {
+                "kind": "string"
+              },
+              "required": true
+            }
+          ],
+          "response_shape": {
+            "type": "object",
+            "undocumented": true
+          },
+          "examples": []
+        }
+      ]
+    },
+    {
+      "name": "instances",
+      "display_name": "Instances",
+      "description": "Manage cloud compute instances",
+      "operations": [
+        {
+          "name": "list-instances",
+          "display_name": "List Instances",
+          "http_method": "GET",
+          "path": "/instances",
+          "description": "List Instances",
+          "parameters": [],
+          "response_shape": {
+            "type": "object",
+            "undocumented": true
+          },
+          "examples": []
+        },
+        {
+          "name": "create-instance",
+          "display_name": "Create Instance",
+          "http_method": "POST",
+          "path": "/instances",
+          "description": "Create Instance",
+          "parameters": [],
+          "response_shape": {
+            "type": "object",
+            "undocumented": true
+          },
+          "examples": []
+        },
+        {
+          "name": "get-instance",
+          "display_name": "Get Instance",
+          "http_method": "GET",
+          "path": "/instances/{instance-id}",
+          "description": "Get Instance",
+          "parameters": [
+            {
+              "name": "instance-id",
+              "display_name": "Instance ID",
+              "description": "The instance ID",
+              "location": "path",
+              "type": {
+                "kind": "string"
+              },
+              "required": true
+            }
+          ],
+          "response_shape": {
+            "type": "object",
+            "undocumented": true
+          },
+          "examples": []
+        },
+        {
+          "name": "delete-instance",
+          "display_name": "Delete Instance",
+          "http_method": "DELETE",
+          "path": "/instances/{instance-id}",
+          "description": "Delete Instance",
+          "parameters": [
+            {
+              "name": "instance-id",
+              "display_name": "Instance ID",
+              "description": "The instance ID",
+              "location": "path",
+              "type": {
+                "kind": "string"
+              },
+              "required": true
+            }
+          ],
+          "response_shape": {
+            "type": "object",
+            "undocumented": true
+          },
+          "examples": []
+        },
+        {
+          "name": "start-instance",
+          "display_name": "Start instance",
+          "http_method": "POST",
+          "path": "/instances/{instance-id}/start",
+          "description": "Start instance",
+          "parameters": [
+            {
+              "name": "instance-id",
+              "display_name": "Instance ID",
+              "description": "The instance ID",
+              "location": "path",
+              "type": {
+                "kind": "string"
+              },
+              "required": true
+            }
+          ],
+          "response_shape": {
+            "type": "object",
+            "undocumented": true
+          },
+          "examples": []
+        },
+        {
+          "name": "reboot-instance",
+          "display_name": "Reboot Instance",
+          "http_method": "POST",
+          "path": "/instances/{instance-id}/reboot",
+          "description": "Reboot Instance",
+          "parameters": [
+            {
+              "name": "instance-id",
+              "display_name": "Instance ID",
+              "description": "The instance ID",
+              "location": "path",
+              "type": {
+                "kind": "string"
+              },
+              "required": true
+            }
+          ],
+          "response_shape": {
+            "type": "object",
+            "undocumented": true
+          },
+          "examples": []
+        },
+        {
+          "name": "halt-instance",
+          "display_name": "Halt Instance",
+          "http_method": "POST",
+          "path": "/instances/{instance-id}/halt",
+          "description": "Halt Instance",
+          "parameters": [
+            {
+              "name": "instance-id",
+              "display_name": "Instance ID",
+              "description": "The instance ID",
+              "location": "path",
+              "type": {
+                "kind": "string"
+              },
+              "required": true
+            }
+          ],
+          "response_shape": {
+            "type": "object",
+            "undocumented": true
+          },
+          "examples": []
+        }
+      ]
+    }
+  ],
+  "pagination": {
+    "default_style": "cursor"
+  }
+}

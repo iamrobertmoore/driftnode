@@ -1124,7 +1124,9 @@ describe('Emit Stage', () => {
       expect(nodeContent).toContain('if (this.continueOnFail())');
       
       // Should add error to returnData if continuing
-      expect(nodeContent).toMatch(/error: error\.message/);
+      // Caught values are `unknown` under strict mode, so the generated code
+      // narrows before reading .message.
+      expect(nodeContent).toMatch(/error instanceof Error \? error\.message/);
       expect(nodeContent).toContain('continue;');
       
       // Should re-throw if not continuing
@@ -1152,7 +1154,7 @@ describe('Emit Stage', () => {
       
       // Should have error handling with continueOnFail
       expect(nodeContent).toContain('if (this.continueOnFail())');
-      expect(nodeContent).toContain('error: error.message');
+      expect(nodeContent).toContain('error instanceof Error ? error.message');
     });
   });
 
@@ -1812,7 +1814,9 @@ function createSampleIR(overrides: { parameters?: Parameter[] } = {}): Intermedi
         const tsconfig = JSON.parse(tsconfigContent);
 
         expect(tsconfig.compilerOptions.outDir).toBe('./dist');
-        expect(tsconfig.compilerOptions.rootDir).toBe('./src');
+        // rootDir is the package root: n8n community nodes keep source in
+        // credentials/ and nodes/ at the top level, not under src/.
+        expect(tsconfig.compilerOptions.rootDir).toBe('.');
       } finally {
         await fs.promises.rm(localTempDir, { recursive: true });
       }
@@ -1861,7 +1865,9 @@ function createSampleIR(overrides: { parameters?: Parameter[] } = {}): Intermedi
 
         expect(tsconfig.include).toContain('credentials/**/*.ts');
         expect(tsconfig.include).toContain('nodes/**/*.ts');
-        expect(tsconfig.include).toContain('src/**/*.ts');
+        // No src/ pattern: the generated package has no src directory, and
+        // including one that does not exist contradicts rootDir.
+        expect(tsconfig.include).not.toContain('src/**/*.ts');
       } finally {
         await fs.promises.rm(localTempDir, { recursive: true });
       }

@@ -480,9 +480,11 @@ ${operationDropdowns}${parameterFields.length > 0 ? ',\n' + parameterFields : ''
 ${generateExecuteRouting(ir, vendorKebab)}
       } catch (error) {
         if (this.continueOnFail()) {
+          // TypeScript types a caught value as unknown under strict mode,
+          // so narrow before reading .message.
           returnData.push({
             json: {
-              error: error.message,
+              error: error instanceof Error ? error.message : String(error),
             },
             pairedItem: i,
           });
@@ -1075,7 +1077,13 @@ async function emitTsConfig(tempDir: string): Promise<void> {
       declarationMap: true,
       sourceMap: true,
       outDir: './dist',
-      rootDir: './src',
+      // rootDir is the package root, not ./src.
+      //
+      // n8n community nodes keep their source in `credentials/` and `nodes/`
+      // at the package root, which is what the include patterns below match
+      // and what n8n's own node starter uses. Setting rootDir to ./src
+      // contradicts that and makes tsc reject every emitted file with TS6059.
+      rootDir: '.',
       strict: true,
       esModuleInterop: true,
       skipLibCheck: true,
@@ -1083,7 +1091,7 @@ async function emitTsConfig(tempDir: string): Promise<void> {
       resolveJsonModule: true,
       moduleResolution: 'node',
     },
-    include: ['credentials/**/*.ts', 'nodes/**/*.ts', 'src/**/*.ts'],
+    include: ['credentials/**/*.ts', 'nodes/**/*.ts'],
     exclude: ['node_modules', 'dist', 'test'],
   };
 
@@ -1502,10 +1510,73 @@ async function emitUnitTests(
 
 import { describe, it, expect } from 'vitest';
 import { loadFixture, fixtureExists } from './fixture-loader';
+import { ${vendorName} } from '../nodes/${vendorName}/${vendorName}.node';
 
+// Structural tests, derived from the contract the node was generated from.
+// These need no credentials, no fixtures and no network, so anyone can run
+// the suite immediately after installing.
+describe('Node structure', () => {
+  const node = new ${vendorName}();
+
+  it('exposes a valid n8n node description', () => {
+    expect(node.description.name).toBe('${escapeString(config.vendor)}');
+    expect(node.description.displayName).toBeTruthy();
+    expect(node.description.version).toBeDefined();
+  });
+
+  it('is usable as an AI agent tool', () => {
+    expect(node.description.usableAsTool).toBe(true);
+  });
+
+  it('requires credentials', () => {
+    expect(node.description.credentials?.[0]?.name).toBe('${escapeString(config.vendor)}Api');
+    expect(node.description.credentials?.[0]?.required).toBe(true);
+  });
+
+  it('has an execute method', () => {
+    expect(typeof node.execute).toBe('function');
+  });
+
+  it('exposes every resource in the contract', () => {
+    const resourceProp = node.description.properties.find(
+      (p: any) => p.name === 'resource'
+    );
+    const values = (resourceProp?.options ?? []).map((o: any) => o.value);
+${ir.resources
+  .map((r) => `    expect(values).toContain('${escapeString(r.name)}');`)
+  .join('\n')}
+    expect(values).toHaveLength(${ir.resources.length});
+  });
+
+  it('exposes every operation in the contract', () => {
+    const operationProps = node.description.properties.filter(
+      (p: any) => p.name === 'operation'
+    );
+    const values = operationProps.flatMap((p: any) =>
+      (p.options ?? []).map((o: any) => o.value)
+    );
+${ir.resources
+  .flatMap((r) => r.operations)
+  .map((op) => `    expect(values).toContain('${escapeString(op.name)}');`)
+  .join('\n')}
+    expect(values).toHaveLength(${ir.resources.reduce(
+      (n, r) => n + r.operations.length,
+      0
+    )});
+  });
+});
+${
+  operationTests.trim().length > 0
+    ? `
 describe('Fixture-backed operation tests', () => {
 ${operationTests}
-});
+});`
+    : `
+// No fixture-backed tests were emitted, because no operation in the contract
+// carried a documented example response. Record fixtures by running the
+// conformance test against the live API with a vendor credential present,
+// and regenerate.`
+}
 
 describe('Parameter validation', () => {
   it('validates required parameters', () => {

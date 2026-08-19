@@ -62,6 +62,38 @@ export interface TestResult {
  * @param tempDir - Path to temporary directory containing generated package
  * @returns TypecheckResult indicating success or failure with errors
  */
+/**
+ * Locate the TypeScript compiler.
+ *
+ * `tsc` is not on PATH in a normal install: it lives in node_modules/.bin,
+ * which only npm scripts see. Resolving the module and invoking it with the
+ * current Node executable works regardless of PATH, shell, or how driftnode
+ * was started.
+ */
+function resolveTsc(): string {
+  try {
+    return require.resolve('typescript/bin/tsc');
+  } catch {
+    // Fall back to PATH, which covers a global TypeScript install.
+    return 'tsc';
+  }
+}
+
+/**
+ * Locate the vitest CLI, for the same reason as resolveTsc.
+ */
+function resolveVitest(): string {
+  try {
+    return require.resolve('vitest/vitest.mjs');
+  } catch {
+    try {
+      return require.resolve('vitest/dist/cli.js');
+    } catch {
+      return 'vitest';
+    }
+  }
+}
+
 export async function runTypecheck(tempDir: string): Promise<TypecheckResult> {
   const tsconfigPath = path.join(tempDir, 'tsconfig.json');
   
@@ -73,7 +105,10 @@ export async function runTypecheck(tempDir: string): Promise<TypecheckResult> {
   }
 
   try {
-    const result = await runCommand('tsc', ['--noEmit', '--project', tsconfigPath]);
+    const result = await runCommand(
+      process.execPath,
+      [resolveTsc(), '--noEmit', '--project', tsconfigPath]
+    );
     
     if (result.exitCode === 0) {
       return { success: true };
@@ -117,7 +152,10 @@ export async function runCompile(tempDir: string): Promise<CompileResult> {
   }
 
   try {
-    const result = await runCommand('tsc', ['--project', tsconfigPath]);
+    const result = await runCommand(
+      process.execPath,
+      [resolveTsc(), '--project', tsconfigPath]
+    );
     
     if (result.exitCode === 0) {
       return { success: true };
@@ -187,10 +225,18 @@ export async function dynamicImport(tempDir: string): Promise<ImportResult> {
       };
     }
 
-    // Perform dynamic import
-    // Convert to file:// URL for proper ESM import
-    const nodeUrl = new URL(`file://${nodePath}`);
-    const module = await import(nodeUrl.href);
+    // Load the compiled node.
+    //
+    // Both driftnode and the generated package compile to CommonJS, and
+    // TypeScript rewrites `await import()` to `require()` under CommonJS.
+    // require() does not accept file:// URLs, only filesystem paths, so
+    // constructing a URL here fails with "Cannot find module 'file:///...'"
+    // even though the file is present.
+    //
+    // The cache entry is cleared first so a regeneration in the same process
+    // loads the newly written file rather than a stale one.
+    delete require.cache[require.resolve(nodePath)];
+    const module = require(nodePath);
 
     // Extract the node class (it should be the default or named export)
     const nodeClass = module.default || module[nodeEntry.className];
@@ -223,14 +269,36 @@ export async function dynamicImport(tempDir: string): Promise<ImportResult> {
 export function verifyNodeStructure(nodeClass: unknown): StructureResult {
   const errors: string[] = [];
 
-  if (typeof nodeClass !== 'object' || nodeClass === null) {
+  // n8n instantiates node classes rather than using them statically. In the
+  // generated code `description` is an instance property and `execute` lives
+  // on the prototype, so neither is visible on the constructor itself.
+  // Instantiate before inspecting, and accept an already-constructed instance
+  // too so this stays usable either way.
+  let node: Record<string, unknown>;
+
+  if (typeof nodeClass === 'function') {
+    try {
+      node = new (nodeClass as new () => unknown)() as Record<string, unknown>;
+    } catch (error) {
+      return {
+        success: false,
+        errors: [
+          `Node class could not be instantiated: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
+        ],
+      };
+    }
+  } else if (typeof nodeClass === 'object' && nodeClass !== null) {
+    node = nodeClass as Record<string, unknown>;
+  } else {
     return {
       success: false,
-      errors: ['Node class is not an object'],
+      errors: [
+        `Expected a node class or instance, received ${typeof nodeClass}`,
+      ],
     };
   }
-
-  const node = nodeClass as Record<string, unknown>;
 
   // Check for description property
   if (!('description' in node)) {
@@ -284,7 +352,7 @@ export async function runTests(tempDir: string): Promise<TestResult> {
       args.push('--config', vitestConfigPath);
     }
 
-    const result = await runCommand('vitest', args, {
+    const result = await runCommand(process.execPath, [resolveVitest(), ...args], {
       cwd: tempDir,
       timeout: 30000, // 30 seconds
       // Ensure no vendor credentials are present
@@ -405,11 +473,20 @@ export async function verify(tempDir: string, targetDir: string): Promise<void> 
     console.log('Verifying node structure...');
     const structureResult = verifyNodeStructure(importResult.nodeClass);
     if (!structureResult.success) {
-      const missingProperty = structureResult.errors?.[0]?.match(/Missing required (?:property|method): (.+)/)?.[1];
+      // Prefer the named property when the message has that shape, but fall
+      // back to the full error list rather than "unknown". Reporting
+      // "Property: unknown" discards the only diagnostic information there is.
+      const missingProperty =
+        structureResult.errors?.[0]?.match(
+          /Missing required (?:property|method): (.+)/
+        )?.[1] ??
+        structureResult.errors?.join('; ') ??
+        'unknown';
+
       throw {
         stage: 'verify',
         type: 'missing_node_property',
-        property: missingProperty || 'unknown',
+        property: missingProperty,
       } as GeneratorError;
     }
 

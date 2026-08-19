@@ -11,19 +11,33 @@
   "include": [
     {
       "resource": "regions",
-      "operations": ["list"]
+      "operations": ["list-regions"]
     },
     {
       "resource": "plans",
-      "operations": ["list"]
+      "operations": ["list-plans"]
     },
     {
       "resource": "ssh-keys",
-      "operations": ["list", "get", "create", "update", "delete"]
+      "operations": [
+        "list-ssh-keys",
+        "get-ssh-key",
+        "create-ssh-key",
+        "update-ssh-key",
+        "delete-ssh-key"
+      ]
     },
     {
       "resource": "instances",
-      "operations": ["list", "get", "create", "delete", "reboot"]
+      "operations": [
+        "list-instances",
+        "get-instance",
+        "create-instance",
+        "delete-instance",
+        "reboot-instance",
+        "halt-instance",
+        "start-instance"
+      ]
     }
   ]
 }

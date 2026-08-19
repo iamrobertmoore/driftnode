@@ -690,11 +690,25 @@ function mergePartialIRs(
     }
   }
 
+  // Only merge resources the configuration actually asks for.
+  //
+  // Filtering after the merge means a conflict in a resource destined to be
+  // discarded still fails the whole run. Vultr documents around forty
+  // resources and a typical configuration wants four, so the discarded
+  // majority dominates the conflict surface for no benefit.
+  const wantedResources = config.include
+    ? new Set(config.include.map(item => item.resource))
+    : null;
+
   // Merge resources by name
   for (let i = 0; i < partials.length; i++) {
     const partial = partials[i]!; // Array indexed within bounds
-    
+
     for (const resource of partial.resources) {
+      if (wantedResources && !wantedResources.has(resource.name)) {
+        continue;
+      }
+
       if (resourcesMap.has(resource.name)) {
         // Merge operations for existing resource
         const existing = resourcesMap.get(resource.name)!;

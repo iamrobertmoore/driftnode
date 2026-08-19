@@ -5,8 +5,12 @@
   "description": "Workspace root for driftnode and the nodes it generates.",
   "license": "MIT",
   "author": "Robert Moore",
-  "engines": { "node": ">=20.19" },
-  "workspaces": ["packages/*"],
+  "engines": {
+    "node": ">=20.19"
+  },
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
     "build": "npm run build --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
@@ -14,8 +18,9 @@
     "conformance": "npm run conformance --workspace packages/n8n-nodes-vultr --if-present"
   },
   "devDependencies": {
+    "@types/node": "^22.9.0",
+    "n8n-workflow": "^2.16.0",
     "typescript": "^5.6.3",
-    "vitest": "^2.1.4",
-    "@types/node": "^22.9.0"
+    "vitest": "^2.1.4"
   }
 }
