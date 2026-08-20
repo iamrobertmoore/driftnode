@@ -131,11 +131,11 @@ The generated package ships a test that reads the contract from `contract/ir.jso
 
 | | Count | Which |
 |---|---|---|
-| Response shape extracted | **7** | Both list endpoints, both get endpoints, both create endpoints, and list-plans |
-| No response body exists | **5** | The three instance actions and both deletes. Vultr documents these as `204 No Content`, so recording no shape is correct rather than a miss |
-| Shape genuinely missed | **2** | `list-ssh-keys` and `update-ssh-key`, both of which do have response samples in the documentation |
+| Response shape extracted | **7** | `list-regions`, `list-plans`, `list-instances`, `get-instance`, `get-ssh-key`, `create-instance`, `create-ssh-key` |
+| No response body exists | **6** | Both deletes, the three instance actions, and `update-ssh-key`. Vultr documents all six as `204 No Content`, so recording no shape is correct rather than a miss |
+| Shape genuinely missed | **1** | `list-ssh-keys`, which does have a response sample in the documentation |
 
-So the test does field-level comparison wherever there is a documented body to compare, on 7 of the 9 operations that return one. For the two it missed, and for the five that return nothing, it verifies the endpoint still exists and responds as documented.
+So the test does field-level comparison on **7 of the 8 operations that return a body**. For the one it missed, and the six that return nothing, it verifies the endpoint still exists and responds as documented.
 
 That distinction is deliberate rather than hidden. A conformance test that guessed at a shape it never extracted would fail against a correct API and teach its user to ignore it.
 
@@ -248,7 +248,7 @@ Only generation uses credits. The conformance test uses none, by design.
 
 Being specific, because "incomplete features presented as working" is a disqualification and because it is more useful than a feature list.
 
-**Two response shapes are missed.** `list-ssh-keys` and `update-ssh-key` both have response samples in Vultr's documentation that extraction did not pick up, so the conformance test checks they respond but not what they return. Improving the extraction prompt took this from 0 of 9 to 7 of 9. The remaining two are prompt work, not a limit of the approach.
+**One response shape is missed.** `list-ssh-keys` has a response sample in Vultr's documentation that extraction does not pick up, so the conformance test checks it responds but not what it returns. Improving the extraction prompt took this from 0 of 8 to 7 of 8. Two independent extraction runs missed the same operation, so it is systematic rather than sampling noise, and I have not worked out why: `list-regions` and `list-plans` have the same response structure and both succeed.
 
 **Validation warns on three bodiless POSTs.** `start-instance`, `reboot-instance` and `halt-instance` take no request body, which is correct for those endpoints, but validation still emits a warning because it cannot tell a genuinely bodiless POST from a failed extraction. The warning is noise and the check should be smarter.
 
