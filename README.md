@@ -17,7 +17,7 @@ The published package is not driftnode itself. It is what driftnode produced, un
 | What | Result |
 |---|---|
 | Input | Vultr's API documentation, saved from a browser. 10.2 MB of HTML, 596,631 characters of text after normalisation |
-| Output | [`n8n-nodes-vultr@0.1.2`](https://www.npmjs.com/package/n8n-nodes-vultr), 4 resources, 14 operations, zero runtime dependencies |
+| Output | [`n8n-nodes-vultr@0.1.3`](https://www.npmjs.com/package/n8n-nodes-vultr), 4 resources, 14 operations, zero runtime dependencies |
 | Verified | Installed via n8n's Community Nodes screen, executed **List Regions**, returned all 36 Vultr regions |
 | Cost | About 3 Kiro credits and 31 minutes for a full extraction. Re-runs are instant from cache |
 
@@ -215,7 +215,7 @@ Extraction across 42 chunks disagreed about Vultr's authentication: some chunks 
 ```bash
 npm install
 npm run build
-npm test          # 196 tests, no credentials or network required
+npm test          # 197 tests, no credentials or network required
 ```
 
 For the generated package:
