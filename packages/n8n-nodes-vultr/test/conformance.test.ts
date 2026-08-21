@@ -25,8 +25,9 @@ const ir = JSON.parse(fs.readFileSync(irPath, 'utf-8'));
 const apiKey = process.env.VULTR_ACCESS_TOKEN;
 const hasCredentials = !!apiKey;
 
-// Conditional describe: skip if no credentials
-const describeConditional = hasCredentials ? describe : describe.skip;
+// Operations that need a credential are skipped individually at run
+// time, on a 401 or 403, rather than the whole suite being skipped up
+// front. Publicly readable endpoints are checked either way.
 
 function getAuthHeaders(): Record<string, string> {
   if (!apiKey) return {};
@@ -93,46 +94,83 @@ function validateResponseShape(data: any, responseShape: any): void {
 describe('Conformance Test', () => {
   beforeAll(() => {
     if (!hasCredentials) {
-      console.log('Skipping conformance tests: no credentials provided');
-      console.log('Set VULTR_ACCESS_TOKEN environment variable to run these tests');
+      console.log('No credentials set. Publicly readable operations are still');
+      console.log('checked; operations that return 401 or 403 are skipped.');
+      console.log('Set VULTR_ACCESS_TOKEN to include the authenticated operations.');
     }
   });
 
-  describeConditional('List Regions - GET /regions', () => {
-    test('returns expected response shape', async () => {
+  describe('List Regions - GET /regions', () => {
+    test('returns expected response shape', async (ctx) => {
       const response = await makeRequest('/regions', 'GET');
+
+      // An endpoint that refuses a credential we do not have is not drift.
+      // Skip it, visibly, rather than reporting a vendor change that did not
+      // happen. Endpoints the vendor exposes publicly are still checked.
+      if (!hasCredentials && (response.status === 401 || response.status === 403)) {
+        ctx.skip();
+        return;
+      }
+
       expect(response.status).toBe(200);
-      
+
       const responseShape = getOperationResponseShape('regions', 'list-regions');
       validateResponseShape(response.data, responseShape);
     }, { timeout: 60000 });
   });
 
-  describeConditional('List Plans - GET /plans', () => {
-    test('returns expected response shape', async () => {
+  describe('List Plans - GET /plans', () => {
+    test('returns expected response shape', async (ctx) => {
       const response = await makeRequest('/plans', 'GET');
+
+      // An endpoint that refuses a credential we do not have is not drift.
+      // Skip it, visibly, rather than reporting a vendor change that did not
+      // happen. Endpoints the vendor exposes publicly are still checked.
+      if (!hasCredentials && (response.status === 401 || response.status === 403)) {
+        ctx.skip();
+        return;
+      }
+
       expect(response.status).toBe(200);
-      
+
       const responseShape = getOperationResponseShape('plans', 'list-plans');
       validateResponseShape(response.data, responseShape);
     }, { timeout: 60000 });
   });
 
-  describeConditional('List SSH Keys - GET /ssh-keys', () => {
-    test('returns expected response shape', async () => {
+  describe('List SSH Keys - GET /ssh-keys', () => {
+    test('returns expected response shape', async (ctx) => {
       const response = await makeRequest('/ssh-keys', 'GET');
+
+      // An endpoint that refuses a credential we do not have is not drift.
+      // Skip it, visibly, rather than reporting a vendor change that did not
+      // happen. Endpoints the vendor exposes publicly are still checked.
+      if (!hasCredentials && (response.status === 401 || response.status === 403)) {
+        ctx.skip();
+        return;
+      }
+
       expect(response.status).toBe(200);
-      
+
       const responseShape = getOperationResponseShape('ssh-keys', 'list-ssh-keys');
       validateResponseShape(response.data, responseShape);
     }, { timeout: 60000 });
   });
 
-  describeConditional('List Instances - GET /instances', () => {
-    test('returns expected response shape', async () => {
+  describe('List Instances - GET /instances', () => {
+    test('returns expected response shape', async (ctx) => {
       const response = await makeRequest('/instances', 'GET');
+
+      // An endpoint that refuses a credential we do not have is not drift.
+      // Skip it, visibly, rather than reporting a vendor change that did not
+      // happen. Endpoints the vendor exposes publicly are still checked.
+      if (!hasCredentials && (response.status === 401 || response.status === 403)) {
+        ctx.skip();
+        return;
+      }
+
       expect(response.status).toBe(200);
-      
+
       const responseShape = getOperationResponseShape('instances', 'list-instances');
       validateResponseShape(response.data, responseShape);
     }, { timeout: 60000 });

@@ -58,8 +58,13 @@ jobs:
           VULTR_ACCESS_TOKEN: ${{ secrets.VULTR_ACCESS_TOKEN }}
         run: npm run conformance
 
+      # Only the conformance step itself means drift. `if: failure()` was wrong:
+      # it also fired when checkout, install or build failed, so an unrelated
+      # broken build reported itself to the world as a vendor API change. That
+      # is the one mistake a drift detector cannot afford to make, because a
+      # detector that cries wolf gets muted and then detects nothing.
       - name: Open an issue on drift
-        if: failure()
+        if: steps.check.outcome == 'failure'
         uses: actions/github-script@v7
         with:
           script: |

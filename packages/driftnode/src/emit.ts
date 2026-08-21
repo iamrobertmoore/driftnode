@@ -1417,11 +1417,20 @@ async function emitConformanceTest(
   for (const { resourceName, operation } of testableOperations) {
     const testName = `${operation.display_name} - ${operation.http_method} ${operation.path}`;
     testCases += `
-  describeConditional('${escapeString(testName)}', () => {
-    test('returns expected response shape', async () => {
-      const response = await makeRequest('${escapeString(operation.path)}', '${operation.http_method}');
+  describe('${escapeString(testName)}', () => {
+    test('returns expected response shape', async (ctx) => {
+      const response = await makeRequest('${escapeString(operation.path)}', '${escapeString(operation.http_method)}');
+
+      // An endpoint that refuses a credential we do not have is not drift.
+      // Skip it, visibly, rather than reporting a vendor change that did not
+      // happen. Endpoints the vendor exposes publicly are still checked.
+      if (!hasCredentials && (response.status === 401 || response.status === 403)) {
+        ctx.skip();
+        return;
+      }
+
       expect(response.status).toBe(200);
-      
+
       const responseShape = getOperationResponseShape('${escapeString(resourceName)}', '${escapeString(operation.name)}');
       validateResponseShape(response.data, responseShape);
     }, { timeout: 60000 });
@@ -1476,8 +1485,14 @@ async function emitConformanceTest(
   content += '// Check for API credentials\n';
   content += 'const apiKey = process.env.' + envVarName + ';\n';
   content += 'const hasCredentials = !!apiKey;\n\n';
-  content += '// Conditional describe: skip if no credentials\n';
-  content += 'const describeConditional = hasCredentials ? describe : describe.skip;\n\n';
+  // Every operation is attempted. Credentials are not assumed to be required,
+  // because many vendors expose part of their API publicly and those endpoints
+  // are exactly the ones a drift check can watch for free, on a schedule,
+  // forever. Skipping the whole suite when no token is present made the check
+  // pass without checking anything, which is worse than failing.
+  content += '// Operations that need a credential are skipped individually at run\n';
+  content += '// time, on a 401 or 403, rather than the whole suite being skipped up\n';
+  content += '// front. Publicly readable endpoints are checked either way.\n\n';
   content += 'function getAuthHeaders(): Record<string, string> {\n';
   content += '  if (!apiKey) return {};\n';
   content += '  \n';
@@ -1539,11 +1554,12 @@ async function emitConformanceTest(
   content += 'describe(\'Conformance Test\', () => {\n';
   content += '  beforeAll(() => {\n';
   content += '    if (!hasCredentials) {\n';
-  content += '      console.log(\'Skipping conformance tests: no credentials provided\');\n';
+  content += '      console.log(\'No credentials set. Publicly readable operations are still\');\n';
+  content += '      console.log(\'checked; operations that return 401 or 403 are skipped.\');\n';
   // Note the quotes: this is the *name* of the environment variable as a
   // string. Interpolating the bare identifier would reference an undefined
   // variable and throw a ReferenceError.
-  content += '      console.log(\'Set ' + envVarName + ' environment variable to run these tests\');\n';
+  content += '      console.log(\'Set ' + envVarName + ' to include the authenticated operations.\');\n';
   content += '    }\n';
   content += '  });\n';
   content += testCases;

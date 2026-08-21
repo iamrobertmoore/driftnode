@@ -112,8 +112,14 @@ describe('Conformance Test Emission', () => {
     // Verify test case for list-users operation
     expect(conformanceTest).toContain('List Users');
     expect(conformanceTest).toContain('GET /users');
-    expect(conformanceTest).toContain('describeConditional');
-    
+    // Operations must be attempted rather than skipped wholesale when no
+    // credential is present, otherwise the scheduled drift check passes
+    // without having checked anything. Only a 401 or 403 skips an operation.
+    expect(conformanceTest).not.toContain('describeConditional');
+    expect(conformanceTest).toContain('response.status === 401');
+    expect(conformanceTest).toContain('response.status === 403');
+    expect(conformanceTest).toContain('ctx.skip()');
+
     // Verify timeout is set to 60 seconds
     expect(conformanceTest).toContain('timeout: 60000');
   });

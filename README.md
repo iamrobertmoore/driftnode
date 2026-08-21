@@ -123,6 +123,10 @@ This is the part that matters, and it is worth being precise about what it does 
 
 The generated package ships a test that reads the contract from `contract/ir.json`, calls the live API, and compares. It runs on a daily schedule in GitHub Actions and opens an issue when it fails. It needs no Kiro, no model access and no generator: pure HTTP plus comparison.
 
+**It runs without any credentials of mine, which is the only reason it runs at all.** Vultr serves Regions and Plans unauthenticated, so the scheduled job checks those two against the live API every night for free. The two operations that do need a token, List Instances and List SSH Keys, are attempted and skipped on a 401 or 403, visibly, as skipped tests rather than silent passes.
+
+This was wrong until late in the build. The first version skipped the entire suite unless `VULTR_ACCESS_TOKEN` was set, and I do not have a Vultr account, so for several days the nightly job passed every night without checking anything. A green tick that means nothing is worse than a red one, because you stop looking. The fix was to stop assuming every endpoint needs a credential and let the API say so.
+
 **It only exercises operations that are free and safe.** A drift check that creates virtual machines would bill the user on every scheduled run and leave orphaned resources behind, and a tool nobody can afford to run does not get run. So conformance covers Regions and Plans, which are read-only, plus List Instances and List SSH Keys. It never calls a POST or DELETE. The generated test file documents every excluded operation and why.
 
 **What it verifies:** that each endpoint still exists at the path and method the contract records, still returns 200, and, for the operations where a response shape was extracted, that the documented fields are still present.
@@ -223,7 +227,7 @@ For the generated package:
 ```bash
 cd packages/n8n-nodes-vultr
 npm test          # structural tests, offline
-npm run conformance   # skips live calls unless VULTR_ACCESS_TOKEN is set
+npm run conformance   # checks Regions and Plans live; skips the two that need a token
 ```
 
 The generated package ships six structural tests that assert the emitted node matches the contract it claims to implement: that all four resources and all fourteen operations appear in the node's dropdowns, that `usableAsTool` is set, that credentials are required. No network, no credentials, no fixtures.

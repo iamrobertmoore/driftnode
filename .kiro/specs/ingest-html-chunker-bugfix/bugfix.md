@@ -95,3 +95,28 @@ These bugs impact performance, token consumption, and reliability of the entire 
 3.13 WHEN `normalize()` processes plain text content THEN the system SHALL CONTINUE TO use `normalizeText()` without changes
 
 3.14 WHEN `fetchRemote()` or `readLocal()` return errors THEN the system SHALL CONTINUE TO handle them with existing error precedence
+
+---
+
+## Outcome
+
+Both defects were reproduced by tests written against the broken code before any
+fix was applied, so each test failed first and then passed. That ordering is the
+only thing that proves a test is testing the bug rather than the fix.
+
+**Defect 1, normalisation.** `normalize()` was dispatching HTML to
+`normalizeText()`, which left every tag, script and style block in place. Vultr's
+documentation page went in at 5,470,000 characters and should have been 596,000.
+
+**Defect 2, forward progress.** When `chunk()` could not find a boundary inside
+the search window it advanced the cursor by a single character and tried again.
+On a 5.47M character input that produced 610 chunks where 13 were correct.
+
+**Result.** 42 chunks from the real page, which is the expected figure for
+596,000 characters at a 15,000 character chunk size with 500 characters of
+overlap. Extraction against the live documentation then completed end to end.
+
+**Cost of the bug.** The two fixes together were four characters and one
+conditional. Finding them took a full extraction run, roughly 28 minutes of
+Kiro time, discarded when the merge failed downstream. Content-hash caching was
+added afterwards so a failed merge no longer throws away the extraction.
