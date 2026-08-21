@@ -1048,7 +1048,11 @@ describe('Emit Stage', () => {
       expect(nodeContent).toContain("qs['region'] = region");
       
       // Optional parameter checked first
-      expect(nodeContent).toMatch(/if \(limit !== undefined\)[\s\S]*?qs\['limit'\] = limit/);
+      // Optional parameters are guarded by isSet(), not a bare undefined
+      // check: n8n returns a field's default rather than undefined when the
+      // user leaves it alone, so !== undefined is always true and every
+      // optional parameter would be sent on every request.
+      expect(nodeContent).toMatch(/if \(isSet\(limit\)\)[\s\S]*?qs\['limit'\] = limit/);
       
       // Should pass qs to request
       expect(nodeContent).toContain('qs,');
@@ -1127,7 +1131,7 @@ describe('Emit Stage', () => {
       expect(nodeContent).toContain("body['label'] = label");
       
       // Optional parameter checked first
-      expect(nodeContent).toMatch(/if \(tags !== undefined\)[\s\S]*?body\['tags'\] = tags/);
+      expect(nodeContent).toMatch(/if \(isSet\(tags\)\)[\s\S]*?body\['tags'\] = tags/);
       
       // Should pass body to request
       expect(nodeContent).toContain('body,');
