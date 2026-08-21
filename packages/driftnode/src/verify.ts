@@ -94,8 +94,48 @@ function resolveVitest(): string {
   }
 }
 
+
+/**
+ * Write a verification-only tsconfig that pulls in the bundled n8n-workflow
+ * type declarations.
+ *
+ * The tsconfig emitted into a generated package stays clean, because a
+ * consumer of that package depends on the real n8n-workflow. This one exists
+ * only so verification can resolve those imports without this repository
+ * having to install n8n's full dependency tree, which includes a native
+ * module that needs a C++ toolchain.
+ */
+async function writeVerifyTsconfig(tempDir: string): Promise<string> {
+  const emittedConfigPath = path.join(tempDir, 'tsconfig.json');
+
+  if (!fs.existsSync(emittedConfigPath)) {
+    return emittedConfigPath;
+  }
+
+  const shim = path.resolve(__dirname, '..', 'types', 'n8n-workflow.d.ts');
+  const verifyConfigPath = path.join(tempDir, 'tsconfig.verify.json');
+
+  // Extend the emitted config's own include list rather than replacing it.
+  // `extends` does not merge include, it overrides, so writing a fixed list
+  // here would silently drop files from the program and let a typecheck pass
+  // on code it never looked at.
+  const emitted = JSON.parse(
+    await fs.promises.readFile(emittedConfigPath, 'utf-8')
+  ) as { include?: string[] };
+
+  const include = [...(emitted.include ?? ['**/*.ts']), shim];
+
+  await fs.promises.writeFile(
+    verifyConfigPath,
+    JSON.stringify({ extends: './tsconfig.json', include }, null, 2),
+    'utf-8'
+  );
+
+  return verifyConfigPath;
+}
+
 export async function runTypecheck(tempDir: string): Promise<TypecheckResult> {
-  const tsconfigPath = path.join(tempDir, 'tsconfig.json');
+  const tsconfigPath = await writeVerifyTsconfig(tempDir);
   
   if (!fs.existsSync(tsconfigPath)) {
     return {
@@ -142,7 +182,7 @@ export async function runTypecheck(tempDir: string): Promise<TypecheckResult> {
  * @returns CompileResult indicating success or failure with errors
  */
 export async function runCompile(tempDir: string): Promise<CompileResult> {
-  const tsconfigPath = path.join(tempDir, 'tsconfig.json');
+  const tsconfigPath = await writeVerifyTsconfig(tempDir);
   
   if (!fs.existsSync(tsconfigPath)) {
     return {
@@ -524,6 +564,14 @@ export async function verify(tempDir: string, targetDir: string): Promise<void> 
 
     // Step 6: All verification passed, move into place
     console.log('Moving to target directory...');
+    // The verification tsconfig is scaffolding, not output. Remove it before
+    // the package moves into place so nothing referencing this repository's
+    // internals ships to a user.
+    const verifyConfig = path.join(tempDir, 'tsconfig.verify.json');
+    if (fs.existsSync(verifyConfig)) {
+      await fs.promises.rm(verifyConfig, { force: true });
+    }
+
     await atomicMove(tempDir, targetDir);
 
     console.log('✓ Verification complete');

@@ -1398,7 +1398,9 @@ describe('Emit Stage', () => {
 
       expect(packageJson.devDependencies).toBeDefined();
       expect(packageJson.devDependencies['n8n-workflow']).toBeDefined();
-      expect(packageJson.devDependencies['n8n-core']).toBeDefined();
+      // n8n-core is deliberately absent: the generated code imports types
+      // from n8n-workflow and nothing else.
+      expect(packageJson.devDependencies['n8n-core']).toBeUndefined();
       expect(packageJson.devDependencies['typescript']).toBeDefined();
       expect(packageJson.devDependencies['vitest']).toBeDefined();
       expect(packageJson.devDependencies['@types/node']).toBeDefined();

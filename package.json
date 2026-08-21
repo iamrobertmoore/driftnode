@@ -16,11 +16,10 @@
     "build": "npm run build --workspaces --if-present",
     "test": "npm run test --workspaces --if-present",
     "lint": "npm run lint --workspaces --if-present",
-    "conformance": "npm run conformance --workspace packages/n8n-nodes-vultr --if-present"
+    "conformance": "npm run conformance --prefix packages/n8n-nodes-vultr"
   },
   "devDependencies": {
     "@types/node": "^22.9.0",
-    "n8n-workflow": "^2.16.0",
     "typescript": "^5.6.3",
     "vitest": "^2.1.4"
   }
