@@ -553,6 +553,28 @@ ${resourceOptionsCode}
   INodeTypeDescription,
 } from 'n8n-workflow';
 
+/**
+ * Should an optional parameter be sent?
+ *
+ * n8n's getNodeParameter never returns undefined for a field the user left
+ * alone: it returns that field's default, which is an empty string for a
+ * string and 0 for a number. Sending those means every optional parameter
+ * goes on every request, and a vendor that validates its inputs rejects the
+ * call. Vultr answers per_page=0 with an HTTP 500, because its minimum is 1.
+ *
+ * Known limitation: a deliberate 0 cannot currently be sent for an optional
+ * numeric parameter, because it is indistinguishable from an untouched field.
+ * The proper fix is to put optional parameters in an n8n "Additional Fields"
+ * collection, which only contains what the user actually added.
+ */
+function isSet(value: unknown): boolean {
+  if (value === undefined || value === null) return false;
+  if (typeof value === 'string') return value.length > 0;
+  if (typeof value === 'number') return value !== 0;
+  if (Array.isArray(value)) return value.length > 0;
+  return true;
+}
+
 export class ${className} implements INodeType {
   description: INodeTypeDescription = {
     displayName: '${vendorName}',
@@ -947,7 +969,13 @@ function generateOperationHandler(
       if (param.required) {
         lines.push(`                qs['${escapeString(param.name)}'] = ${toCamelCase(param.name)};`);
       } else {
-        lines.push(`                if (${toCamelCase(param.name)} !== undefined) {`);
+        // n8n's getNodeParameter never returns undefined for an unset
+        // optional field: it returns the field's default, which is 0 for a
+        // number and an empty string for a string. Checking only for
+        // undefined therefore sends every optional parameter on every
+        // request, and a vendor that validates them rejects the call.
+        // Vultr returns HTTP 500 for per_page=0, because its minimum is 1.
+        lines.push(`                if (isSet(${toCamelCase(param.name)})) {`);
         lines.push(`                  qs['${escapeString(param.name)}'] = ${toCamelCase(param.name)};`);
         lines.push(`                }`);
       }
@@ -962,7 +990,7 @@ function generateOperationHandler(
       if (param.required) {
         lines.push(`                headers['${escapeString(param.name)}'] = ${toCamelCase(param.name)};`);
       } else {
-        lines.push(`                if (${toCamelCase(param.name)} !== undefined) {`);
+        lines.push(`                if (isSet(${toCamelCase(param.name)})) {`);
         lines.push(`                  headers['${escapeString(param.name)}'] = ${toCamelCase(param.name)};`);
         lines.push(`                }`);
       }
@@ -977,7 +1005,7 @@ function generateOperationHandler(
       if (param.required) {
         lines.push(`                body['${escapeString(param.name)}'] = ${toCamelCase(param.name)};`);
       } else {
-        lines.push(`                if (${toCamelCase(param.name)} !== undefined) {`);
+        lines.push(`                if (isSet(${toCamelCase(param.name)})) {`);
         lines.push(`                  body['${escapeString(param.name)}'] = ${toCamelCase(param.name)};`);
         lines.push(`                }`);
       }

@@ -9,7 +9,7 @@
     "header_name": "Authorization"
   },
   "packageMeta": {
-    "version": "0.1.3",
+    "version": "0.1.4",
     "author": "Robert Moore",
     "repository": "git+https://github.com/iamrobertmoore/driftnode.git",
     "homepage": "https://www.vultr.com/api/",

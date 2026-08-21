@@ -5,6 +5,28 @@ import {
   INodeTypeDescription,
 } from 'n8n-workflow';
 
+/**
+ * Should an optional parameter be sent?
+ *
+ * n8n's getNodeParameter never returns undefined for a field the user left
+ * alone: it returns that field's default, which is an empty string for a
+ * string and 0 for a number. Sending those means every optional parameter
+ * goes on every request, and a vendor that validates its inputs rejects the
+ * call. Vultr answers per_page=0 with an HTTP 500, because its minimum is 1.
+ *
+ * Known limitation: a deliberate 0 cannot currently be sent for an optional
+ * numeric parameter, because it is indistinguishable from an untouched field.
+ * The proper fix is to put optional parameters in an n8n "Additional Fields"
+ * collection, which only contains what the user actually added.
+ */
+function isSet(value: unknown): boolean {
+  if (value === undefined || value === null) return false;
+  if (typeof value === 'string') return value.length > 0;
+  if (typeof value === 'number') return value !== 0;
+  if (Array.isArray(value)) return value.length > 0;
+  return true;
+}
+
 export class Vultr implements INodeType {
   description: INodeTypeDescription = {
     displayName: 'Vultr',
@@ -1050,10 +1072,10 @@ export class Vultr implements INodeType {
 
                 let url = '/regions';
                 const qs: Record<string, any> = {};
-                if (perPage !== undefined) {
+                if (isSet(perPage)) {
                   qs['per_page'] = perPage;
                 }
-                if (cursor !== undefined) {
+                if (isSet(cursor)) {
                   qs['cursor'] = cursor;
                 }
 
@@ -1119,16 +1141,16 @@ export class Vultr implements INodeType {
 
                 let url = '/plans';
                 const qs: Record<string, any> = {};
-                if (type !== undefined) {
+                if (isSet(type)) {
                   qs['type'] = type;
                 }
-                if (perPage !== undefined) {
+                if (isSet(perPage)) {
                   qs['per_page'] = perPage;
                 }
-                if (cursor !== undefined) {
+                if (isSet(cursor)) {
                   qs['cursor'] = cursor;
                 }
-                if (os !== undefined) {
+                if (isSet(os)) {
                   qs['os'] = os;
                 }
 
@@ -1248,10 +1270,10 @@ export class Vultr implements INodeType {
                 url = url.replace('{ssh-key-id}', encodeURIComponent(String(sshKeyId)));
 
                 const body: Record<string, any> = {};
-                if (name !== undefined) {
+                if (isSet(name)) {
                   body['name'] = name;
                 }
-                if (sshKey !== undefined) {
+                if (isSet(sshKey)) {
                   body['ssh_key'] = sshKey;
                 }
 
@@ -1362,10 +1384,10 @@ export class Vultr implements INodeType {
 
                 let url = '/ssh-keys';
                 const qs: Record<string, any> = {};
-                if (perPage !== undefined) {
+                if (isSet(perPage)) {
                   qs['per_page'] = perPage;
                 }
-                if (cursor !== undefined) {
+                if (isSet(cursor)) {
                   qs['cursor'] = cursor;
                 }
 
@@ -1493,31 +1515,31 @@ export class Vultr implements INodeType {
 
                 let url = '/instances';
                 const qs: Record<string, any> = {};
-                if (perPage !== undefined) {
+                if (isSet(perPage)) {
                   qs['per_page'] = perPage;
                 }
-                if (cursor !== undefined) {
+                if (isSet(cursor)) {
                   qs['cursor'] = cursor;
                 }
-                if (tag !== undefined) {
+                if (isSet(tag)) {
                   qs['tag'] = tag;
                 }
-                if (label !== undefined) {
+                if (isSet(label)) {
                   qs['label'] = label;
                 }
-                if (mainIp !== undefined) {
+                if (isSet(mainIp)) {
                   qs['main_ip'] = mainIp;
                 }
-                if (region !== undefined) {
+                if (isSet(region)) {
                   qs['region'] = region;
                 }
-                if (firewallGroupId !== undefined) {
+                if (isSet(firewallGroupId)) {
                   qs['firewall_group_id'] = firewallGroupId;
                 }
-                if (hostname !== undefined) {
+                if (isSet(hostname)) {
                   qs['hostname'] = hostname;
                 }
-                if (showPendingCharges !== undefined) {
+                if (isSet(showPendingCharges)) {
                   qs['show_pending_charges'] = showPendingCharges;
                 }
 
@@ -1601,76 +1623,76 @@ export class Vultr implements INodeType {
                 const body: Record<string, any> = {};
                 body['region'] = region;
                 body['plan'] = plan;
-                if (osId !== undefined) {
+                if (isSet(osId)) {
                   body['os_id'] = osId;
                 }
-                if (ipxeChainUrl !== undefined) {
+                if (isSet(ipxeChainUrl)) {
                   body['ipxe_chain_url'] = ipxeChainUrl;
                 }
-                if (isoId !== undefined) {
+                if (isSet(isoId)) {
                   body['iso_id'] = isoId;
                 }
-                if (scriptId !== undefined) {
+                if (isSet(scriptId)) {
                   body['script_id'] = scriptId;
                 }
-                if (snapshotId !== undefined) {
+                if (isSet(snapshotId)) {
                   body['snapshot_id'] = snapshotId;
                 }
-                if (enableIpv6 !== undefined) {
+                if (isSet(enableIpv6)) {
                   body['enable_ipv6'] = enableIpv6;
                 }
-                if (disablePublicIpv4 !== undefined) {
+                if (isSet(disablePublicIpv4)) {
                   body['disable_public_ipv4'] = disablePublicIpv4;
                 }
-                if (attachVpc !== undefined) {
+                if (isSet(attachVpc)) {
                   body['attach_vpc'] = attachVpc;
                 }
-                if (label !== undefined) {
+                if (isSet(label)) {
                   body['label'] = label;
                 }
-                if (sshkeyId !== undefined) {
+                if (isSet(sshkeyId)) {
                   body['sshkey_id'] = sshkeyId;
                 }
-                if (backups !== undefined) {
+                if (isSet(backups)) {
                   body['backups'] = backups;
                 }
-                if (appId !== undefined) {
+                if (isSet(appId)) {
                   body['app_id'] = appId;
                 }
-                if (imageId !== undefined) {
+                if (isSet(imageId)) {
                   body['image_id'] = imageId;
                 }
-                if (userData !== undefined) {
+                if (isSet(userData)) {
                   body['user_data'] = userData;
                 }
-                if (ddosProtection !== undefined) {
+                if (isSet(ddosProtection)) {
                   body['ddos_protection'] = ddosProtection;
                 }
-                if (activationEmail !== undefined) {
+                if (isSet(activationEmail)) {
                   body['activation_email'] = activationEmail;
                 }
-                if (hostname !== undefined) {
+                if (isSet(hostname)) {
                   body['hostname'] = hostname;
                 }
-                if (firewallGroupId !== undefined) {
+                if (isSet(firewallGroupId)) {
                   body['firewall_group_id'] = firewallGroupId;
                 }
-                if (reservedIpv4 !== undefined) {
+                if (isSet(reservedIpv4)) {
                   body['reserved_ipv4'] = reservedIpv4;
                 }
-                if (enableVpc !== undefined) {
+                if (isSet(enableVpc)) {
                   body['enable_vpc'] = enableVpc;
                 }
-                if (vpcOnly !== undefined) {
+                if (isSet(vpcOnly)) {
                   body['vpc_only'] = vpcOnly;
                 }
-                if (tags !== undefined) {
+                if (isSet(tags)) {
                   body['tags'] = tags;
                 }
-                if (userScheme !== undefined) {
+                if (isSet(userScheme)) {
                   body['user_scheme'] = userScheme;
                 }
-                if (appVariables !== undefined) {
+                if (isSet(appVariables)) {
                   body['app_variables'] = appVariables;
                 }
 
