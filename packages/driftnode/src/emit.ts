@@ -1210,12 +1210,18 @@ async function emitPackageJson(
       credentials: [`dist/credentials/${vendorName}Api.credentials.js`],
       nodes: [`dist/nodes/${vendorName}/${vendorName}.node.js`],
     },
+    // Development dependencies only. The generated package ships compiled
+    // JavaScript and has no runtime dependencies at all, which is a hard
+    // requirement for an n8n community node.
+    //
+    // n8n-core is deliberately absent: the generated code imports types from
+    // n8n-workflow and nothing else. Declaring a dependency the package never
+    // imports makes installs heavier and lockfiles wrong for no benefit.
     devDependencies: {
-      '@types/node': '^20.10.0',
-      'n8n-workflow': '^1.0.0',
-      'n8n-core': '^1.0.0',
-      typescript: '^5.3.0',
-      vitest: '^1.0.0',
+      '@types/node': '^22.9.0',
+      'n8n-workflow': '^2.16.0',
+      typescript: '^5.6.3',
+      vitest: '^2.1.4',
     },
   };
 

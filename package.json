@@ -8,8 +8,9 @@
   "engines": {
     "node": ">=20.19"
   },
+  "//workspaces": "Only the generator is a workspace. packages/n8n-nodes-vultr is generated output that is published separately and has zero runtime dependencies. Including it would install its devDependencies into this repo, which means n8n's entire tree (AWS SDK, OpenTelemetry, Sentry, LangChain) for the sake of five type names, and would put the lockfile out of sync on every regeneration.",
   "workspaces": [
-    "packages/*"
+    "packages/driftnode"
   ],
   "scripts": {
     "build": "npm run build --workspaces --if-present",
