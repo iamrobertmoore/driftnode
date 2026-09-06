@@ -6,7 +6,7 @@ Generation is the convenience. The conformance test is the point.
 
 **[npm: n8n-nodes-vultr](https://www.npmjs.com/package/n8n-nodes-vultr)** · **[Demo video (3 min)](https://www.youtube.com/watch?v=CnD2j0dw0Zg)**
 
-Built with [Kiro](https://kiro.dev) for the Ready, Spec, Ship hackathon. Solo entry.
+Built with [Kiro](https://kiro.dev) for the Ready, Spec, Ship hackathon. Solo entry. **Placed 4th**, announced 6 September 2026.
 
 ---
 
