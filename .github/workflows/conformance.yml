@@ -59,12 +59,21 @@ jobs:
         run: npm run conformance
 
       # Only the conformance step itself means drift. `if: failure()` was wrong:
-      # it also fired when checkout, install or build failed, so an unrelated
-      # broken build reported itself to the world as a vendor API change. That
-      # is the one mistake a drift detector cannot afford to make, because a
-      # detector that cries wolf gets muted and then detects nothing.
+      # it fired when checkout, install or build failed too, so an unrelated
+      # broken build reported itself to the world as a vendor API change.
+      #
+      # But the first fix, a bare `if: steps.check.outcome == 'failure'`, was
+      # worse. GitHub wraps an `if` expression that contains no status function
+      # in an implicit `success()`, so once `check` fails the condition is
+      # `success() && ...`, which is always false. The step was skipped on every
+      # real failure and nothing was ever filed. It sat like that from 21 Aug to
+      # 5 Oct, through the first genuine vendor failure the check ever caught.
+      #
+      # `always()` restores the status context so the outcome test is actually
+      # evaluated. A detector that cries wolf gets muted; a detector that stays
+      # silent is worse, because nothing tells you it has stopped working.
       - name: Open an issue on drift
-        if: steps.check.outcome == 'failure'
+        if: always() && steps.check.outcome == 'failure'
         uses: actions/github-script@v7
         with:
           script: |
